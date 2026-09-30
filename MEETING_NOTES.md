@@ -62,10 +62,10 @@
 
 | Task / Deliverable | Assigned Owner(s) | Target Deadline | Status |
 | :--- | :--- | :--- | :--- |
-| Finalize list of Functional Requirements and NFRs for Part A | Subteam A Members | Today (Oct 4) | In Progress|
+| Finalize list of Functional Requirements and NFRs for Part A | Subteam A Members | Oct 4 | In Progress|
 | Draft Part A User Stories & Gherkin Criteria | Part A Subteam | Oct 4, 2026 | In Progress |
 | Draft Part A UML Models | Subteam A| Oct 7, 2026 | To Do |
-| Finalize list of Functional Requirements and NFRs for Part B | Subteam B Members | Today (Oct 4) | In Progress|
+| Finalize list of Functional Requirements and NFRs for Part B | Subteam B Members | Oct 4 | In Progress|
 | Draft Part B Requirements & Gherkin Criteria | Part B Subteam | Oct 4, 2026 | In Progress |
 | Draft Part B UML Models| Subteam B | Oct 6, 2026 | To Do |
 | Set up Traceability Table | Miguel | Oct 5, 2026 | In Progress |
