@@ -50,8 +50,9 @@
 * Reviewed criteria for well-made functional and non-functional requirements
 * Reviewed criteria for well-made user stories and Gherkin specifications
 * Explored ReQuest functionalities and workflow
+* Planned meeting for Sunday Oct 4
+* Hard deadline for FR and NFR changed to Sunday Oct 4 by the 5 pm meeting
   
-
 ---
 
 ### 4. Action Items (Who Does What by When)
