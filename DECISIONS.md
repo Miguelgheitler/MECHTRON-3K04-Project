@@ -7,6 +7,8 @@
 | **ASM-01** | Network      | Assume the hospital network infrastructure is available, but the ADC can operate locally and handle communication losses temporarily. | Shapes requirements for local event logging, reliability, and offline resilience during network drops.                               |
 | **ASM-02** | Hardware     | Assume physical cabinet hardware, electronic locks, drawers, sensors, and actuators already exist and provide software APIs.          | Keeps mechanical design, drawer mechanisms, and internal hardware details strictly out of scope.                                     |
 | **ASM-03** | Users & Auth | Assume a means of capturing user credentials at the cabinet is available and users have valid accounts.                               | Enables the implementation of strict access control enforcement and role-based permissions for nurses, pharmacists, and technicians. |
+| **ASM-04** | Fault Handling | Assume at worst, issues are escalated to and guaranteed to be resolved by the project manager                                       | Sets the extent to which issues/alerts are expected to be escalated by the system. |
+| **ASM-05** | Data | Assume all medication data (dosage, storage requirements, administration instructions, etc) is available.                                     | Allows use of medication to be automatically monitored |
 
 ## 2. Architectural & Design Decisions
 
