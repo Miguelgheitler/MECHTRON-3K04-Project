@@ -9,6 +9,7 @@
 | **ASM-03** | Users & Auth | Assume a means of capturing user credentials at the cabinet is available and users have valid accounts.                               | Enables the implementation of strict access control enforcement and role-based permissions for nurses, pharmacists, and technicians. |
 | **ASM-04** | Fault Handling | Assume at worst, issues are escalated to and guaranteed to be resolved by the project manager                                       | Sets the extent to which issues/alerts are expected to be escalated by the system. |
 | **ASM-05** | Data | Assume all medication data (dosage, storage requirements, administration instructions, etc) is available.                                     | Allows use of medication to be automatically monitored |
+| **ASM-06** | Staffing | Assume nurses and pharmacists are assigned specific ADC units for which to review alerts                                                  | Shapes the hierarchy for alarm management; allows better organization than all alarms being sent to all hospital employees |
 
 ## 2. Architectural & Design Decisions
 
