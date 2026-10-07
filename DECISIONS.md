@@ -29,5 +29,5 @@
 
 Cognitive Load Management(FR-ALRM-02): Directing alarms explicitly to the appropriate individuals based on roles prevents broadcast fatigue. In high-stress clinical environments, filtering out irrelevant alarms ensures that healthcare workers can focus on actionable alerts without cognitive overload.
 
-Interface & Device Adaptability (US-ALRM-02, Scenario 3): Allowing staff to manage and toggle their notification preferences through authorized devices ensures that the notification mechanism aligns with what each individual can effectively access and monitor while on shift.
+Interface & Device Adaptability (FR-ALRM-03 and US-ALRM-02, Scenario 3 ): Allowing staff to manage and toggle their notification preferences through authorized devices ensures that the notification mechanism aligns with what each individual can effectively access and monitor while on shift.
   
