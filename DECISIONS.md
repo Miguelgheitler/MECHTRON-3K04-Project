@@ -16,7 +16,6 @@
 
 |**Decision ID**|**Topic**|**Choice Made**|**Alternatives Considered**|**Why We Chose This**|
 |---|---|---|---|---|
-|**DEC-02**|Operational Modes|Implement explicit state-machine operational modes (normal operation, maintenance, and fault conditions).|Unstructured runtime states.|Manages safety-critical dispensing behaviors and handles abnormal hardware/software conditions safely.|
 
 ## 3. Ethical & Safety Considerations
 
