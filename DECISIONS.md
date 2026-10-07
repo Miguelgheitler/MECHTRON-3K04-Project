@@ -25,7 +25,7 @@
     
 - **Controlled Access:** Enforce strict authentication checks so that only permitted users can perform protected actions or access specific medications.
 
--**Accessibility:** Multi-Channel Notification Flexibility (US-ALRM-02 / FR-ALRM-03): By giving staff the flexibility to receive alerts through multiple avenues (SMS, email, or designated app notifications), the system accommodates different user preferences, device types, and individual communication needs.
+**Accessibility:** Multi-Channel Notification Flexibility (US-ALRM-02 / FR-ALRM-03): By giving staff the flexibility to receive alerts through multiple avenues (SMS, email, or designated app notifications), the system accommodates different user preferences, device types, and individual communication needs.
 
 Cognitive Load & Alert Fatigue Management (FR-ALRM-02): Directing alarms explicitly to the appropriate individuals based on roles prevents broadcast fatigue. In high-stress clinical environments, filtering out irrelevant alarms ensures that healthcare workers can focus on actionable alerts without cognitive overload.
 
