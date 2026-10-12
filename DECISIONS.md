@@ -13,7 +13,9 @@
 | **ASM-07** | Network | Assume the monitoring system is capable of detecting when an alarm fails to be received by recipient device                                | Keeps software regarding detection of connection failure strictly out of scope. | 
 | **ASM-08** | Hardware | Assume all employees have a personal ID card that integrates with a tap system                                                            | Provides an option for multi-factor authentification | 
 | **ASM-09** | Security | Assume hospital security policies recommend a 2-minute timeout duration                                                                   | Justifies the somewhat arbitrary choice of time frame | 
-| **ASM-10** | Security | Assume the monitoring system has access to shift schedules, notably can check (Y/N) if a specified employee is working                    | Provides a layer of security | 
+| **ASM-10** | Data | Assume the monitoring system has access to shift schedules, notably can check (Y/N) if a specified employee is working                        | Provides a layer of security | 
+| **ASM-11** | Hardware | Assume that most employees possess a cell phone capable of a face ID check                                                                | Provides a layer of security | 
+
 
 ## 2. Architectural & Design Decisions
 
