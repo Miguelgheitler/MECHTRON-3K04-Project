@@ -20,7 +20,7 @@
 ## 2. Architectural & Design Decisions
 
 |**Decision ID**|**Topic**|**Choice Made**|**Alternatives Considered**|**Why We Chose This**|
-|---|---|---|---|---|
+| **DEC-LOG-001** | Event Timestamp Precision | Dual-Precision Time: Store millisecond UTC timestamps in the database; truncate to second-level (`YYYY-MM-DD HH:MM:SS`) on front-end UIs and reports. | 1. **Second-Level Only:** Inadequate for handling high-volume concurrent network packet sync bursts.<br>2. **Millisecond Everywhere:** Adds visual noise and formatting cognitive load for clinical auditors. | **System Concurrency:** Millisecond backend tracking is mandatory to prevent data deadlocks, sort asynchronous network bursts from multiple cabinets, and resolve race conditions.<br><br>**Human Usability:** Second-level front-end display aligns with standard hospital security footage and EHR entry formats for clean drug diversion auditing.<br><br>**Zero Storage Penalty:** Modern database engines allocate fixed binary bytes (7-8 bytes) regardless of truncation, meaning millisecond tracking provides maximum integrity at zero data storage cost. |
 
 ## 3. Ethical & Safety Considerations
 
