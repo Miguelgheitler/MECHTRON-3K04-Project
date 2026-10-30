@@ -1,4 +1,4 @@
-name,role,userID,password,sms_enabled,email_enabled,app_enabled
+name,role,userID,password,smsNotifEnabled,emailNotifEnabled,appNotifEnabled
 Evan Edgell,NURSE,E-001,pswdEvan,True,True,True
 Miguel Gonzalez Heitler,PHARMACIST,G-001,pswdMiguel,False,True,True
 Nick Weiler,IT_ADMIN,W-001,pswdNick,True,False,True

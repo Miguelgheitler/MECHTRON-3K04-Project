@@ -14,9 +14,10 @@ class User:
         role: UserRole,
         userID: str,
         password: str,
-        # smsNotifEnabled: bool = True,
-        # emailNotifEnabled: bool = True,
-        # appNotifEnabled = True
+
+        smsNotifEnabled: bool,
+        emailNotifEnabled: bool,
+        appNotifEnabled: bool
     ):
 
         self.name = name
@@ -24,11 +25,11 @@ class User:
         self.userID = userID
         self.password = password
 
-        # self.prefAlarmChannel: Dict[str, bool] = {
-        #     "sms": smsNotifEnabled,
-        #     "email": emailNotifEnabled,
-        #     "app": appNotifEnabled
-        # }
+        self.prefAlarmChannel: Dict[str, bool] = {
+            "sms": smsNotifEnabled,
+            "email": emailNotifEnabled,
+            "app": appNotifEnabled
+        }
 
 # SAMPLE OBJECT CREATION
 # nurse = User(
@@ -36,4 +37,8 @@ class User:
 #     role = UserRole.NURSE,
 #     userID = "L-001",
 #     password = "abcd1234"
+
+#     smsNotifEnabled = True
+#     emailNotifEnabled = True
+#     appNotifEnabled = False
 # )
