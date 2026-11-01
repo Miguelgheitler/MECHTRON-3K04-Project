@@ -58,6 +58,9 @@ class Task:
     def complete(self):
         self.status = TaskStatus.COMPLETED
 
+        # add TASK COMPLETION to event log, USES FROM event_logger.py
+
+
     def __repr__(self):
         furtherNotes = ""
         for i in self.furtherNotes:
