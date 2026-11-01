@@ -1,23 +1,7 @@
-============================================================
-         CENTRALIZED HOSPITAL AUDIT LOGGER & EVENT TRAIL     
-             Hospital ABC - City, Province/State             
-============================================================
-[2026-11-01 16:31:15.527] [ALARM] | Source: ADC-01 | User: NURSE-01 | Details: Drawer 2 jammed
-[2026-11-01 17:04:05.319] [INVENTORY] | Source: ADC-03 | User: SYSTEM | Details: Initialized new ADC cabinet.
-[2026-11-01 17:04:25.620] [INVENTORY] | Source: ADC-03 | User: PHARMACIST | Details: Added medication Morphine with stock 10.
-[2026-11-01 17:07:01.424] [INVENTORY] | Source: ADC-01 | User: SYSTEM | Details: Initialized new ADC cabinet.
-[2026-11-01 17:07:01.425] [INVENTORY] | Source: ADC-01 | User: PHARMACIST | Details: Added medication Insulin with stock 20.
-[2026-11-01 17:07:41.974] [INVENTORY] | Source: ADC-01 | User: PHARMACIST | Details: Added medication Morphine with stock 10.
-[2026-11-01 17:08:57.680] [INVENTORY] | Source: ADC-02 | User: SYSTEM | Details: Initialized new ADC cabinet.
-[2026-11-01 17:08:57.681] [INVENTORY] | Source: ADC-02 | User: PHARMACIST | Details: Added medication Morphine with stock 10.
-[2026-11-01 17:26:50.479] [INVENTORY] | Source: ADC-03 | User: PHARMACIST | Details: Added medication Morphine with stock 10.
-[2026-11-01 17:27:06.147] [ALARM] | Source: ADC-03 | User: SYSTEM | Details: Alarm received from ADC: AlarmType.LOW_INVENTORY - Stock below minimum par
-[2026-11-01 17:36:06.849] [INVENTORY] | Source: ADC-03 | User: PHARMACIST-01 | Details: Removed medication Morphine from cabinet inventory.
-[2026-11-01 18:04:09.134] [SECURITY] | Source: P-001 | User: P-001 | Details: User logged in with role UserRole.PHARMACIST.
-[2026-11-01 18:06:15.588] [SECURITY] | Source: P-001 | User: P-001 | Details: User logged in with role UserRole.PHARMACIST.
-[2026-11-01 18:09:07.671] [SECURITY] | Source: UserRole.PHARMACIST | User: P-001 | Details: User logged in with role UserRole.PHARMACIST.
-[2026-11-01 18:12:06.663] [SECURITY] | Source: P-001 | User: P-001 | Details: User logged in with role UserRole.PHARMACIST.
-[2026-11-01 18:13:37.214] [INVENTORY] | Source: ADC-04 | User: SYSTEM | Details: Initialized new ADC cabinet.
-[2026-11-01 18:14:51.184] [INVENTORY] | Source: ADC-04 | User: PHARMACIST | Details: Added medication Insulin with stock 10.
-[2026-11-01 18:15:52.911] [ALARM] | Source: ADC-04 | User: SYSTEM | Details: Alarm received from ADC: AlarmType.LOW_INVENTORY - stock dropped below safety threshold
-[2026-11-01 18:16:54.709] [ALARM] | Source: ADC-04 | User: SYSTEM | Details: Alarm received from ADC: AlarmType.LOW_INVENTORY - dropped below threshold
+==================================================================
+             CENTRALIZED HOSPITAL AUDIT LOGGER & EVENT TRAIL     
+                 Hospital ABC - City, Province/State             
+==================================================================
+TIMESTAMP                   | LOG_TYPE   | SOURCE     | USER       | DETAILS
+--------------------------------------------------------------------------------
+[2026-11-01 18:27:50.086] [SECURITY] | Source: P-001 | User: P-001 | Details: User logged in with role UserRole.PHARMACIST.
