@@ -72,3 +72,19 @@ class Task:
             f"\n\t{self.details}"
             f"{furtherNotes}"
         )
+
+# SAMPLE TASK CALLS
+
+# task123 = Task(
+#     taskID = "task123",
+#     assignee = "S-001",
+#     taskType = TaskType.SPECIAL,
+#     details = "ADC 02 has cracked drawer handle",
+#     origin = "E-001"
+# )
+
+# task123.assign("W-001", "please fix")
+
+# task123.add_note("part has been ordered, expected to arrive Nov 4th")
+
+# task123.complete()
