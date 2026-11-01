@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from enum import Enum
+from event_logger import EventLogger 
 
 class AlarmType(str, Enum):
     CONNECTION_LOST = "CONNECTION_LOST"
@@ -8,6 +9,8 @@ class AlarmType(str, Enum):
     LOW_INVENTORY = "LOW_INVENTORY"
 
 class Alarm:
+    _logger = EventLogger()
+
     def __init__(
         self,
         adcID: str,
@@ -21,19 +24,41 @@ class Alarm:
         self.isCritical = isCritical
         self.details = details
         self.timestamp = timestamp if timestamp is not None else datetime.now()
+        
+        # logs creation of alarm immediately
+        self.add_to_log()
 
     def escalate(self):
+        #escaltes alarm to critical and logs it 
         self.isCritical = True
+        self._logger.log_event("alarm_escalated", f"{self.alarmType} at ADC {self.adcID} escalated to CRITICAL.")
     
-    def add_to_log(self): # <USES> from event_logger.py
+    def add_to_log(self):
+        #logs alarm
+        severity = "CRITICAL" if self.isCritical else "MINOR"
+        log_message = f"[{severity}] {self.alarmType} triggered at {self.adcID}. {self.details}"
+        self._logger.log_event("alarm_created", log_message)
 
     def __repr__(self):
         severity = "CRITICAL" if self.isCritical else "MINOR"
-        return f"Alarm [{severity}]\n{self.alarmType} at ADC{self.adcID}"
+        return f"Alarm [{severity}]\n{self.alarmType} at {self.adcID}"
 
-# SAMPLE OBJECT CREATION
-# alarm327 = Alarm(
-#     adcID = "ADC-4",
-#     alarmType = "CONNECTION_LOST",
-#     isCritical = True
-# )
+# sample alarm
+# if __name__ == "__main__":
+#     alarm327 = Alarm(
+#         adcID="ADC-4",
+#         alarmType=AlarmType.CONNECTION_LOST,
+#         isCritical=True,
+#         details="ADC failed 30-second heartbeat ping."
+#     )
+#     print(alarm327)
+    
+#     minor_alarm = Alarm(
+#         adcID="ADC-1",
+#         alarmType=AlarmType.LOW_INVENTORY,
+#         isCritical=False,
+#         details="Medication Y is below minimum threshold."
+#     )
+    
+#     minor_alarm.escalate()
+#     print(minor_alarm)
