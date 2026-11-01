@@ -10,3 +10,6 @@
 [2026-11-01 17:07:41.974] [INVENTORY] | Source: ADC-01 | User: PHARMACIST | Details: Added medication Morphine with stock 10.
 [2026-11-01 17:08:57.680] [INVENTORY] | Source: ADC-02 | User: SYSTEM | Details: Initialized new ADC cabinet.
 [2026-11-01 17:08:57.681] [INVENTORY] | Source: ADC-02 | User: PHARMACIST | Details: Added medication Morphine with stock 10.
+[2026-11-01 17:26:50.479] [INVENTORY] | Source: ADC-03 | User: PHARMACIST | Details: Added medication Morphine with stock 10.
+[2026-11-01 17:27:06.147] [ALARM] | Source: ADC-03 | User: SYSTEM | Details: Alarm received from ADC: AlarmType.LOW_INVENTORY - Stock below minimum par
+[2026-11-01 17:36:06.849] [INVENTORY] | Source: ADC-03 | User: PHARMACIST-01 | Details: Removed medication Morphine from cabinet inventory.

@@ -24,20 +24,11 @@ class Alarm:
         self.isCritical = isCritical
         self.details = details
         self.timestamp = timestamp if timestamp is not None else datetime.now()
-        
-        # logs creation of alarm immediately
-        self.add_to_log()
 
     def escalate(self):
         #escaltes alarm to critical and logs it 
         self.isCritical = True
         self._logger.log_event("alarm_escalated", f"{self.alarmType} at ADC {self.adcID} escalated to CRITICAL.")
-    
-    def add_to_log(self):
-        #logs alarm
-        severity = "CRITICAL" if self.isCritical else "MINOR"
-        log_message = f"[{severity}] {self.alarmType} triggered at {self.adcID}. {self.details}"
-        self._logger.log_event("alarm_created", log_message)
 
     def __repr__(self):
         severity = "CRITICAL" if self.isCritical else "MINOR"
