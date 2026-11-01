@@ -1,73 +1,153 @@
-from event_logger import EventLogger
-#from access_control import AccessControl
-from comms_gateway import CommsGateway
-from alarm_class import Alarm, AlarmType 
+"""
+Module: System Shell (UI Module)
+Responsibility: Provides the terminal-based user interface, enforces session authentication 
+via Access Control, and routes terminal commands to Inventory Supervision and Event Logging.
+"""
 
-class MockAuth:
-    def is_authenticated(self): return True
-    def get_current_role(self): return "IT Admin"
-    def login(self, user, pwd): return True
-    def logout(self): pass
+from event_logger import EventLogger
+from inventory_manager import InventoryManager
+from comms_gateway import CommsGateway
+from alarm_class import Alarm, AlarmType
+import access_control
 
 def run_terminal():
-    logger = EventLogger()
-    #auth = AccessControl(logger)
-    #mock auth for testing
-    auth = MockAuth()
+    logger = EventLogger("system_audit_log.txt")
+    inv_mgr = InventoryManager("system_inventory.txt", event_logger=logger)
     comms = CommsGateway(logger)
     
-    # used to keep track of active alarms in the system
+    # Active session state managed by Access Control module
+    current_user = None
+    
+    # Track active alarms in memory
     active_alarms = {}
 
     print("=== Hospital Monitoring System Terminal ===")
-    print("Commands: 'login', 'logout', 'view_logs', 'sim_adc', 'view_alarms', 'ack_alarm', 'exit'")
+    print("NOTE: You must log in first to execute any system commands.")
+    print("Commands: 'login', 'logout', 'init_adc', 'add_med', 'remove_med', 'restock', 'view_inventory', 'view_logs', 'clear_logs', 'sim_adc', 'view_alarms', 'ack_alarm', 'exit'")
 
     while True:
         cmd = input("\nsystem> ").strip().lower()
 
         if cmd == "exit":
             print("Shutting down terminal...")
+            logger.log_event("SYSTEM", "SHELL", "System terminal shut down.", "SYSTEM")
             break
 
+        # =====================================================================
+        # AUTHENTICATION COMMANDS
+        # =====================================================================
         elif cmd == "login":
-            if auth.is_authenticated():
-                print("You are already logged in!")
+            if current_user is not None:
+                print(f"Already logged in as {current_user.name} ({current_user.role}). Logout first to switch users.")
                 continue
             
-            user = input("Username: ")
-            pwd = input("Password: ")
+            user_id = input("Enter User ID (e.g., L-001): ").strip()
+            password = input("Enter Password: ").strip()
             
-            if auth.login(user, pwd):
-                print(f"Access Granted. Role: {auth.get_current_role()}")
-            else:
-                print("Access Denied. Credentials invalid.")
+            # Calls login function from access_control module
+            logged_in_user = access_control.login(user_id, password)
+            if logged_in_user is not None:
+                current_user = logged_in_user
+                logger.log_event("SECURITY", str(current_user.userID), f"User logged in with role {current_user.role}.", current_user.userID)
+            continue
 
         elif cmd == "logout":
-            auth.logout()
+            if current_user is None:
+                print("No user is currently logged in.")
+                continue
+            
+            logger.log_event("SECURITY", current_user.userID, f"User logged out.", current_user.userID)
+            current_user = access_control.logout(current_user)
             print("Logged out successfully.")
+            continue
 
+        # =====================================================================
+        # GLOBAL SESSION GUARD: Block all other commands if not logged in
+        # =====================================================================
+        if current_user is None:
+            print("[ACCESS DENIED] You must be logged in to execute system commands. Type 'login'.")
+            continue
+
+        # =====================================================================
+        # INVENTORY COMMANDS (Restricted to Pharmacists or appropriate roles)
+        # =====================================================================
+        elif cmd == "init_adc":
+            if not access_control.check_authorization(current_user, access_control.UserRole.PHARMACIST) and current_user.role != access_control.UserRole.IT_ADMIN:
+                print("[ACCESS DENIED] Only Pharmacists or IT Admins can initialize new ADC cabinets.")
+                continue
+            
+            adc_id = input("Enter ADC ID to initialize (e.g., ADC-03): ").strip()
+            inv_mgr.init_adc(adc_id)
+
+        elif cmd == "add_med":
+            if not access_control.check_authorization(current_user, access_control.UserRole.PHARMACIST):
+                print("[ACCESS DENIED] Only Pharmacists can add medications to ADC inventory.")
+                logger.log_event("SECURITY_WARNING", current_user.userID, f"Unauthorized attempt by {current_user.role} to add medication.", current_user.userID)
+                continue
+
+            adc_id = input("Enter ADC ID (e.g., ADC-03): ").strip()
+            med_name = input("Enter Medication Name (e.g., Morphine): ").strip()
+            try:
+                stock = int(input("Initial Stock: "))
+                min_par = int(input("Minimum Par Level: "))
+                max_par = int(input("Maximum Par Level: "))
+                inv_mgr.add_medication(adc_id, med_name, stock, min_par, max_par)
+            except ValueError:
+                print("[ERROR] Stock and par levels must be integers.")
+
+        elif cmd == "remove_med":
+            if not access_control.check_authorization(current_user, access_control.UserRole.PHARMACIST):
+                print("[ACCESS DENIED] Only Pharmacists can remove medications from inventory.")
+                continue
+
+            adc_id = input("Enter ADC ID (e.g., ADC-03): ").strip()
+            med_name = input("Enter Medication Name to remove: ").strip()
+            inv_mgr.remove_medication(adc_id, med_name, operator_id=current_user.userID)
+
+        elif cmd == "restock":
+            if not access_control.check_authorization(current_user, access_control.UserRole.PHARMACIST):
+                print("[ACCESS DENIED] Only Pharmacists can update stock levels.")
+                continue
+
+            adc_id = input("Enter ADC ID (e.g., ADC-03): ").strip()
+            med_name = input("Enter Medication Name: ").strip()
+            try:
+                new_stock = int(input("New Stock Level: "))
+                inv_mgr.update_stock_level(adc_id, med_name, new_stock, operator_id=current_user.userID)
+            except ValueError:
+                print("[ERROR] Stock level must be integers.")
+
+        elif cmd == "view_inventory":
+            print("\n--- INVENTORY SUPERVISION STATUS ---")
+            inv_mgr.get_inventory_status()
+            print("------------------------------------")
+
+        # =====================================================================
+        # AUDIT LOG COMMANDS (Strictly restricted to IT Admin)
+        # =====================================================================
         elif cmd == "view_logs":
-            if not auth.is_authenticated():
-                print("Error: You must be logged in to view system logs.")
-                logger.log_event("security_warning", "Unauthorized attempt to view logs.")
-                continue
-            
-            role = auth.get_current_role()
-            if role != "IT Admin":
-                print("Error: Only IT Admins can view detailed system logs.")
+            if not access_control.check_authorization(current_user, access_control.UserRole.IT_ADMIN):
+                print("[ACCESS DENIED] Only IT Admins can view system audit logs.")
+                logger.log_event("SECURITY_WARNING", current_user.userID, f"Unauthorized attempt by {current_user.role} to read logs.", current_user.userID)
                 continue
 
-            print("\n--- SYSTEM EVENT LOGS ---")
-            for log in logger.get_logs():
-                print(log)
-            print("-------------------------")
+            logger.read_logs()
 
+        elif cmd == "clear_logs":
+            if not access_control.check_authorization(current_user, access_control.UserRole.IT_ADMIN):
+                print("[ACCESS DENIED] Only IT Admins can clear audit logs.")
+                continue
+
+            logger.clear_logs()
+
+        # =====================================================================
+        # ALARM & ADC SIMULATION COMMANDS
+        # =====================================================================
         elif cmd == "sim_adc":
-            adc_id = input("Enter ADC ID (e.g., ADC-01): ")
+            adc_id = input("Enter ADC ID (e.g., ADC-03): ").strip()
             
-            # map user input to AlarmType
             print("Alarm Types: 1) CONNECTION_LOST, 2) CABINET_FAULT, 3) LOW_INVENTORY")
-            type_choice = input("Select alarm type (1-3): ")
+            type_choice = input("Select alarm type (1-3): ").strip()
             
             if type_choice == '1':
                 alarm_type = AlarmType.CONNECTION_LOST
@@ -82,22 +162,22 @@ def run_terminal():
             payload = input("Enter message payload: ")
             is_crit = input("Is this critical? (y/n): ").strip().lower() == 'y'
             
-            # create and log alarm
+            # Create Alarm object
             new_alarm = Alarm(adcID=adc_id, alarmType=alarm_type, isCritical=is_crit, details=payload)
             alarm_key = f"{adc_id}-{alarm_type.value}"
             active_alarms[alarm_key] = new_alarm
             
-            # pass to comms gateway for processing
-            severity = "critical" if is_crit else "routine"
-            comms.receive_adc_message(adc_id, payload, severity)
-            print(f"Alarm created: {alarm_key}")
+            # If low inventory, automatically update inventory manager row and file
+            if alarm_type == AlarmType.LOW_INVENTORY:
+                med_name = input("Enter medication name affected by low inventory: ").strip()
+                inv_mgr.process_incoming_alarm(new_alarm, med_name)
+            else:
+                comms.receive_adc_message(adc_id, payload, "critical" if is_crit else "routine")
+                logger.log_event("ALARM", adc_id, f"Alarm simulated: {alarm_type} - {payload}", current_user.userID)
+
+            print(f"Alarm simulated and logged: {alarm_key}")
 
         elif cmd == "view_alarms":
-            # any authenticated user can view active alarms
-            if not auth.is_authenticated():
-                 print("Error: You must be logged in to view alarms.")
-                 continue
-                 
             if not active_alarms:
                  print("No active alarms.")
             else:
@@ -107,22 +187,17 @@ def run_terminal():
                  print("---------------------")
 
         elif cmd == "ack_alarm":
-            if not auth.is_authenticated():
-                 print("Error: You must be logged in to acknowledge alarms.")
-                 continue
-                 
-            alarm_key = input("Enter the Alarm Key to acknowledge (e.g., ADC-01-CONNECTION_LOST): ")
+            alarm_key = input("Enter the Alarm Key to acknowledge (e.g., ADC-03-LOW_INVENTORY): ").strip()
             
             if alarm_key in active_alarms:
-                # log resolution, and ack alarm
-                logger.log_event("alarm_acknowledged", f"User {auth.get_current_role()} acknowledged and cleared {alarm_key}")
+                logger.log_event("ALARM_ACK", current_user.userID, f"User {current_user.name} ({current_user.role}) acknowledged and cleared {alarm_key}", current_user.userID)
                 del active_alarms[alarm_key]
                 print(f"Alarm {alarm_key} acknowledged and cleared.")
             else:
                 print("Error: Alarm key not found.")
                 
         else:
-            print("Unknown command. Valid commands: 'login', 'logout', 'view_logs', 'sim_adc', 'view_alarms', 'ack_alarm', 'exit'")
+            print("Unknown command. Type a valid command from the menu.")
 
 if __name__ == "__main__":
     run_terminal()
