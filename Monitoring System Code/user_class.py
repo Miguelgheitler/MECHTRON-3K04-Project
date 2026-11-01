@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Dict
+import csv
 
 class UserRole(str, Enum):
     NURSE = "NURSE"
@@ -42,3 +43,30 @@ class User:
 #     emailNotifEnabled = True
 #     appNotifEnabled = False
 # )
+
+def load_user(targetUserID: str): #pulls user from users.csv to validate login
+    with open("users.csv", mode = "r", newline = "", encoding = "utf-8") as file:
+        reader = csv.DictReader(file)
+
+        for row in reader:
+            if row["userID"].strip() == targetUserID.strip():
+                name = row["name"].strip()
+                role = row["role"].strip()
+                userID = row["userID"].strip()
+                password = row["password"].strip()
+
+                sms = row["smsNotifEnabled"].strip().lower() == "true"
+                email = row["emailNotifEnabled"].strip().lower() == "true"
+                app = row["appNotifEnabled"].strip().lower() == "true"
+
+                return User(
+                    name = name,
+                    role = UserRole(role),
+                    userID = userID,
+                    password = password,
+
+                    smsNotifEnabled = sms,
+                    emailNotifEnabled = email,
+                    appNotifEnabled = app
+                )
+    return None

@@ -10,7 +10,7 @@ class AlarmType(str, Enum):
 class Alarm:
     def __init__(
         self,
-        adcID: int,
+        adcID: str,
         alarmType: AlarmType,
         isCritical: bool,
         details: str = "",
@@ -20,13 +20,12 @@ class Alarm:
         self.alarmType = alarmType
         self.isCritical = isCritical
         self.details = details
-        if timestamp == None:
-            self.timestamp = datetime.now()
-        else:
-            self.timestamp = timestamp
+        self.timestamp = timestamp if timestamp is not None else datetime.now()
 
     def escalate(self):
         self.isCritical = True
+    
+    def add_to_log(self): # <USES> from event_logger.py
 
     def __repr__(self):
         severity = "CRITICAL" if self.isCritical else "MINOR"
@@ -34,7 +33,7 @@ class Alarm:
 
 # SAMPLE OBJECT CREATION
 # alarm327 = Alarm(
-#     adcID = 4,
+#     adcID = "ADC-4",
 #     alarmType = "CONNECTION_LOST",
 #     isCritical = True
 # )
