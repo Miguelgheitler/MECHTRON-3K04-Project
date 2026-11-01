@@ -10,15 +10,16 @@ class TaskStatus(str, Enum):
     PENDING = "PENDING"
     RETURNED = "RETURNED"
     ASSIGNED = "ASSIGNED"
+    COMPLETED = "COMPLETED"
 
 class Task:
     def __init__(
         self,
         taskID: str,
-        assignee: str,
-        origin: str,
+        assignee: str, #userID
         taskType: TaskType,
         details: str,
+        origin: str = "", #userID if taskType=SPECIAL
         timestamp: Optional[datetime] = None
     ):
         self.taskID = taskID
@@ -31,4 +32,40 @@ class Task:
         self.status: TaskStatus = TaskStatus.PENDING
         self.furtherNotes: List[str] = []
 
-    def reassign(self, employeeID: str)
+        # add TASK CREATION to event log, USES FROM event_logger.py
+
+    def assign(self, userID: str, comment: str = ""):
+        # supervisor assigns to employee
+        self.assignee = userID
+        if comment.strip():
+            self.furtherNotes.append(comment.strip())
+        self.status = TaskStatus.ASSIGNED
+
+    def return_for_clarification(self, comment: str = ""):
+        # if consusiong, supervisor returns request to sender
+        if comment.strip():
+            self.furtherNotes.append(comment.strip())
+        self.status = TaskStatus.RETURNED
+    
+    def resubmit(self, comment: str = ""):
+        # sender clarifies confusion
+        self.furtherNotes.append(comment.strip())
+        self.status = TaskStatus.PENDING
+    
+    def add_note(self, comment: str = ""):
+        self.furtherNotes.append(comment.strip())
+
+    def complete(self):
+        self.status = TaskStatus.COMPLETED
+
+    def __repr__(self):
+        furtherNotes = ""
+        for i in self.furtherNotes:
+            furtherNotes += "\n\t-> "
+            furtherNotes += i
+        return (
+            f"Task {self.taskID} [{self.status.value}] ({self.taskType.value}) "
+            f"-> {self.assignee} | Notes: {len(self.furtherNotes)}"
+            f"\n\t{self.details}"
+            f"{furtherNotes}"
+        )
