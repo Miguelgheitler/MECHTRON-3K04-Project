@@ -1,0 +1,5 @@
+============================================================
+         CENTRALIZED HOSPITAL AUDIT LOGGER & EVENT TRAIL     
+             Hospital ABC - City, Province/State             
+============================================================
+[2026-11-01 16:31:15.527] [ALARM] | Source: ADC-01 | User: NURSE-01 | Details: Drawer 2 jammed
