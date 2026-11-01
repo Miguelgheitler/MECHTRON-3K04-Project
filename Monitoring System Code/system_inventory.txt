@@ -1,0 +1,10 @@
+==================================================================
+                 ADC MULTI-CABINET INVENTORY SUPERVISION           
+             Hospital ABC - City, Province/State                 
+==================================================================
+ADC_ID | MEDICATION_NAME | STOCK | MIN_PAR | MAX_PAR | ALARM_STATUS
+------------------------------------------------------------------
+ADC-01 | Insulin | 20 | 10 | 300 | NORMAL
+ADC-01 | Morphine | 10 | 20 | 100 | NORMAL
+ADC-02 | Morphine | 10 | 20 | 100 | NORMAL
+ADC-03 | Morphine | 10 | 20 | 100 | NORMAL
