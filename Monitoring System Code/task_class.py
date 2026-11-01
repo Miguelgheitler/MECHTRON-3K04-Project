@@ -80,10 +80,10 @@ class Task:
 #     assignee = "S-001",
 #     taskType = TaskType.SPECIAL,
 #     details = "ADC 02 has cracked drawer handle",
-#     origin = "E-001"
+#     origin = "N-001"
 # )
 
-# task123.assign("W-001", "please fix")
+# task123.assign("I-001", "please fix")
 
 # task123.add_note("part has been ordered, expected to arrive Nov 4th")
 
