@@ -10,6 +10,31 @@ from comms_gateway import CommsGateway
 from alarm_class import Alarm, AlarmType
 import access_control
 
+def print_help_menu():
+    """Helper function to cleanly display available commands."""
+    print("\n==================================================================")
+    print("                 HOSPITAL MONITORING SYSTEM - COMMANDS           ")
+    print("==================================================================")
+    print("  [Authentication]")
+    print("    login          - Authenticate with User ID and password")
+    print("    logout         - Terminate current active session")
+    print("  [Inventory Supervision (Pharmacist / Admin)]")
+    print("    init_adc       - Initialize a new ADC cabinet (Format: ADC-##)")
+    print("    add_med        - Add a medication and par levels to an ADC")
+    print("    remove_med     - Remove a medication from an ADC inventory")
+    print("    restock        - Update stock levels (clears low-inventory alarms)")
+    print("    view_inventory - Display live multi-cabinet inventory status")
+    print("  [Audit Logging & Alarms (IT Admin / System)]")
+    print("    view_logs      - Display centralized system audit logs (IT Admin)")
+    print("    clear_logs     - Reset and clear the system audit log (IT Admin)")
+    print("    sim_adc        - Simulate an incoming hardware or inventory alarm")
+    print("    view_alarms    - List all active alarms in memory")
+    print("    ack_alarm      - Acknowledge and resolve an active alarm")
+    print("  [General]")
+    print("    help           - Display this command menu")
+    print("    exit           - Shut down the terminal shell")
+    print("==================================================================")
+
 def run_terminal():
     logger = EventLogger("system_audit_log.txt")
     inv_mgr = InventoryManager("system_inventory.txt", event_logger=logger)
@@ -23,7 +48,7 @@ def run_terminal():
 
     print("=== Hospital Monitoring System Terminal ===")
     print("NOTE: You must log in first to execute any system commands.")
-    print("Commands: 'login', 'logout', 'init_adc', 'add_med', 'remove_med', 'restock', 'view_inventory', 'view_logs', 'clear_logs', 'sim_adc', 'view_alarms', 'ack_alarm', 'exit'")
+    print("Type 'help' to view available commands.")
 
     while True:
         cmd = input("\nsystem> ").strip().lower()
@@ -32,6 +57,10 @@ def run_terminal():
             print("Shutting down terminal...")
             logger.log_event("SYSTEM", "SHELL", "System terminal shut down.", "SYSTEM")
             break
+
+        elif cmd == "help":
+            print_help_menu()
+            continue
 
         # =====================================================================
         # AUTHENTICATION COMMANDS
@@ -48,7 +77,11 @@ def run_terminal():
             logged_in_user = access_control.login(user_id, password)
             if logged_in_user is not None:
                 current_user = logged_in_user
-                logger.log_event("SECURITY", str(current_user.userID), f"User logged in with role {current_user.role}.", current_user.userID)
+                logger.log_event("SECURITY", "AUTH", f"User {current_user.name} ({current_user.role.value}) successfully logged in.", current_user.userID)
+                print(f"Access Granted. Role: {current_user.role}")
+                
+                # Automatically print help menu upon successful login
+                print_help_menu()
             continue
 
         elif cmd == "logout":
@@ -56,7 +89,7 @@ def run_terminal():
                 print("No user is currently logged in.")
                 continue
             
-            logger.log_event("SECURITY", current_user.userID, f"User logged out.", current_user.userID)
+            logger.log_event("SECURITY", "AUTH", f"User {current_user.name} logged out.", current_user.userID)
             current_user = access_control.logout(current_user)
             print("Logged out successfully.")
             continue
@@ -173,7 +206,7 @@ def run_terminal():
                 inv_mgr.process_incoming_alarm(new_alarm, med_name)
             else:
                 comms.receive_adc_message(adc_id, payload, "critical" if is_crit else "routine")
-                logger.log_event("ALARM", adc_id, f"Alarm simulated: {alarm_type} - {payload}", current_user.userID)
+                logger.log_event("ALARM", adc_id, f"Alarm simulated: {alarm_type.value} - {payload}", current_user.userID)
 
             print(f"Alarm simulated and logged: {alarm_key}")
 
@@ -190,14 +223,14 @@ def run_terminal():
             alarm_key = input("Enter the Alarm Key to acknowledge (e.g., ADC-03-LOW_INVENTORY): ").strip()
             
             if alarm_key in active_alarms:
-                logger.log_event("ALARM_ACK", current_user.userID, f"User {current_user.name} ({current_user.role}) acknowledged and cleared {alarm_key}", current_user.userID)
+                logger.log_event("ALARM_ACK", current_user.userID, f"User {current_user.name} ({current_user.role.value}) acknowledged and cleared {alarm_key}", current_user.userID)
                 del active_alarms[alarm_key]
                 print(f"Alarm {alarm_key} acknowledged and cleared.")
             else:
                 print("Error: Alarm key not found.")
                 
         else:
-            print("Unknown command. Type a valid command from the menu.")
+            print("Unknown command. Type 'help' for a list of valid commands.")
 
 if __name__ == "__main__":
     run_terminal()
