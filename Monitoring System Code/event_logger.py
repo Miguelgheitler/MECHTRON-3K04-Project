@@ -24,10 +24,12 @@ class EventLogger:
     def _write_header(self) -> None:
         """HIDDEN IMPLEMENTATION: Writes the professional title header and vague subtitle."""
         header = (
-            "============================================================\n"
-            "         CENTRALIZED HOSPITAL AUDIT LOGGER & EVENT TRAIL     \n"
-            "             Hospital ABC - City, Province/State             \n"
-            "============================================================\n"
+            "==================================================================\n"
+            "             CENTRALIZED HOSPITAL AUDIT LOGGER & EVENT TRAIL     \n"
+            "                 Hospital ABC - City, Province/State             \n"
+            "==================================================================\n"
+            "TIMESTAMP                   | LOG_TYPE   | SOURCE     | USER       | DETAILS\n"
+            "--------------------------------------------------------------------------------\n"
         )
         with open(self._log_filepath, "w", encoding="utf-8") as f:
             f.write(header)

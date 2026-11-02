@@ -1,11 +1,13 @@
 """
 Module: Inventory Manager (Inventory Supervision)
 Responsibility: Tracks live stock counts and par levels across multiple ADCs using medication 
-names as primary keys, manages the dedicated inventory persistence file, ingests external alarms 
-transmitted from ADCs, and communicates with the Event Logger.
+names as primary keys, validates cabinet ID formatting (ADC-##), prevents duplicate medication 
+entries per cabinet, allows medication removal, manages the dedicated inventory persistence file, 
+and ingests external alarms.
 """
 
 import os
+import re
 from typing import Dict, List, Optional
 from datetime import datetime
 from event_logger import EventLogger
@@ -93,6 +95,11 @@ class InventoryManager:
         with open(self._inventory_filepath, "w", encoding="utf-8") as f:
             f.writelines(lines)
 
+    def _validate_adc_format(self, adc_id: str) -> bool:
+        """HIDDEN IMPLEMENTATION: Enforces that ADC ID matches the required 'ADC-##' format."""
+        pattern = r"^ADC-\d{2}$"
+        return bool(re.match(pattern, adc_id))
+
     # =========================================================================
     # PUBLIC INTERFACE (What other modules are allowed to call)
     # =========================================================================
@@ -100,7 +107,12 @@ class InventoryManager:
     def init_adc(self, adc_id: str) -> None:
         """
         Public Interface method to initialize a new ADC cabinet in the system.
+        Enforces 'ADC-##' format validation.
         """
+        if not self._validate_adc_format(adc_id):
+            print(f"[INVENTORY ERROR] Invalid ADC ID format '{adc_id}'. Must follow format 'ADC-##' (e.g., ADC-03).")
+            return
+
         if adc_id not in self._inventory_cache:
             self._inventory_cache[adc_id] = {}
             self._sync_to_storage()
@@ -113,9 +125,19 @@ class InventoryManager:
     def add_medication(self, adc_id: str, med_name: str, initial_stock: int, min_par: int, max_par: int) -> None:
         """
         Public Interface method to add a new medication name and its par levels to a specific ADC.
+        Prevents duplicate medication entries of the same name within the same ADC.
         """
+        if not self._validate_adc_format(adc_id):
+            print(f"[INVENTORY ERROR] Cannot add medication to invalid ADC ID format '{adc_id}'.")
+            return
+
         if adc_id not in self._inventory_cache:
             self.init_adc(adc_id)
+
+        # Check if medication already exists in this ADC
+        if med_name in self._inventory_cache[adc_id]:
+            print(f"[INVENTORY NOTICE] Medication '{med_name}' already exists in '{adc_id}'. Duplicate entry prevented.")
+            return
 
         self._inventory_cache[adc_id][med_name] = {
             "stock": initial_stock,
@@ -128,6 +150,24 @@ class InventoryManager:
         
         if self._event_logger:
             self._event_logger.log_event("INVENTORY", adc_id, f"Added medication {med_name} with stock {initial_stock}.", "PHARMACIST")
+
+    def remove_medication(self, adc_id: str, med_name: str, operator_id: str = "PHARMACIST-01") -> None:
+        """
+        Public Interface method to remove a medication from a specific ADC cabinet.
+        Updates the in-memory cache, flushes the text file, and logs the action.
+        """
+        if adc_id not in self._inventory_cache or med_name not in self._inventory_cache[adc_id]:
+            print(f"[INVENTORY ERROR] Medication '{med_name}' not found in '{adc_id}'.")
+            return
+
+        # Remove the medication from the dictionary
+        del self._inventory_cache[adc_id][med_name]
+        self._sync_to_storage()
+        
+        print(f"[INVENTORY SUCCESS] Removed medication '{med_name}' from {adc_id}.")
+        
+        if self._event_logger:
+            self._event_logger.log_event("INVENTORY", adc_id, f"Removed medication {med_name} from cabinet inventory.", operator_id)
 
     def update_stock_level(self, adc_id: str, med_name: str, new_stock: int, operator_id: str = "PHARMACIST-01") -> None:
         """
@@ -196,14 +236,21 @@ class InventoryManager:
 #   logger = EventLogger("system_audit_log.txt")
 #   inv_mgr = InventoryManager("system_inventory.txt", event_logger=logger)
 #   
-#   # 1. Initialize ADC and add medication by name only
-#   inv_mgr.init_adc("ADC-03")
-#   inv_mgr.add_medication("ADC-03", "Morphine", initial_stock=10, min_par=20, max_par=100)
+#   # 1. Test ADC Format Validation (Invalid vs Valid)
+#   inv_mgr.init_adc("ADC-BAD")  # Should reject
+#   inv_mgr.init_adc("ADC-03")   # Should succeed
 #   
-#   # 2. Simulate an incoming alarm packet sent over from ADC-03
+#   # 2. Add medication and test duplicate prevention
+#   inv_mgr.add_medication("ADC-03", "Morphine", initial_stock=10, min_par=20, max_par=100)
+#   inv_mgr.add_medication("ADC-03", "Morphine", initial_stock=50, min_par=20, max_par=100) # Should reject duplicate
+#   
+#   # 3. Simulate an incoming alarm packet sent over from ADC-03
 #   incoming_alarm = Alarm(adcID="ADC-03", alarmType=AlarmType.LOW_INVENTORY, isCritical=True, details="Stock below minimum par")
 #   inv_mgr.process_incoming_alarm(incoming_alarm, "Morphine")
 #   
-#   # 3. View inventory table (shows the active alarm status column updated)
+#   # 4. View inventory table (shows the active alarm status column updated)
 #   inv_mgr.get_inventory_status()
-# =============================================================================
+#   
+#   # 5. Test Medication Removal Function
+#   inv_mgr.remove_medication("ADC-03", "Morphine")
+#   inv_mgr.get_inventory_status()
