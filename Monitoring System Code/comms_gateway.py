@@ -1,29 +1,26 @@
-class CommsGateway:
-    def __init__(self, logger):
-        self.logger = logger
-        self._connected_adcs = {}  # dictionary tracking connection status
-        self._offline_buffer = {}  # buffers messages if a link goes down
+"""
+Module: Communications Gateway (Comms Gateway)
+Responsibility: Handles incoming network/telemetry messages from remote ADCs 
+and routes them through the event logger.
+"""
 
-    def receive_adc_message(self, adc_id: str, payload: str, severity: str = "routine") -> bool:
-        # mark the ADC as connected upon receiving a heartbeat/message
-        self._connected_adcs[adc_id] = True
-        
+from event_logger import EventLogger
+
+class CommsGateway:
+    def __init__(self, logger: EventLogger = None):
+        self.logger = logger if logger else EventLogger()
+
+    def receive_adc_message(self, adc_id: str, payload: str, severity: str = "routine"):
+        """
+        Receives messages/telemetry from an ADC and logs them securely.
+        """
         if severity == "critical":
-            self.logger.log_event("comms_critical", f"CRITICAL ALARM received from {adc_id} -> {payload}")
-            print(f"\n[URGENT] COMMS-GATEWAY: CRITICAL ALARM received from {adc_id} -> {payload}")
-            
-            # create the alarm object and log it
-            try:
-                from alarm_class import Alarm, AlarmType
-                new_alarm = Alarm(adcID=adc_id, alarmType=AlarmType.CABINET_FAULT, isCritical=True, details=payload)
-                self.logger.log_event("alarm_created", f"[{new_alarm.alarmType.value}] generated for {adc_id}: {payload}")
-            except ImportError:
-                pass
+            # FIXED: Provide event_type, source_id, description, and user_id
+            self.logger.log_event("ALARM", adc_id, f"Critical message received: {payload}", "SYSTEM")
         else:
-            self.logger.log_event("comms_routine", f"Routine update received from {adc_id} -> {payload}")
-            print(f"\n[INFO] COMMS-GATEWAY: Routine update received from {adc_id} -> {payload}")
+            self.logger.log_event("COMMS", adc_id, f"Routine telemetry received: {payload}", "SYSTEM")
             
-        return True
+        print(f"[COMMS] Processed message from {adc_id} ({severity}): {payload}")
 
     def verify_connectivity(self, adc_id: str) -> bool:
         is_connected = self._connected_adcs.get(adc_id, False)

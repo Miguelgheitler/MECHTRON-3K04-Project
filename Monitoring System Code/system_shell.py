@@ -55,7 +55,6 @@ def run_terminal():
 
         if cmd == "exit":
             print("Shutting down terminal...")
-            logger.log_event("SYSTEM", "SHELL", "System terminal shut down.", "SYSTEM")
             break
 
         elif cmd == "help":

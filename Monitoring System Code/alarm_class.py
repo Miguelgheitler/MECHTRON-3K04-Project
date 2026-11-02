@@ -32,7 +32,7 @@ class Alarm:
 
     def __repr__(self):
         severity = "CRITICAL" if self.isCritical else "MINOR"
-        return f"Alarm [{severity}]\n{self.alarmType} at {self.adcID}"
+        return f"Alarm [{severity}]"
 
 # sample alarm
 # if __name__ == "__main__":
