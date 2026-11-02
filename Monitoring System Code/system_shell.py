@@ -8,6 +8,7 @@ from event_logger import EventLogger
 from inventory_manager import InventoryManager
 from comms_gateway import CommsGateway
 from alarm_class import Alarm, AlarmType
+from user_class import UserRole, User, load_user
 import access_control
 
 def print_help_menu():
@@ -24,6 +25,10 @@ def print_help_menu():
     print("    remove_med     - Remove a medication from an ADC inventory")
     print("    restock        - Update stock levels (clears low-inventory alarms)")
     print("    view_inventory - Display live multi-cabinet inventory status")
+    print("  [Manage User Profiles (IT Admin)]")
+    print("    hire           - Create user profile (IT Admin)")
+    print("    retire/fire    - Delete user profile (IT Admin)")
+    print("    modify_profile - Modify/update user profile (IT Admin)")
     print("  [Audit Logging & Alarms (IT Admin / System)]")
     print("    view_logs      - Display centralized system audit logs (IT Admin)")
     print("    clear_logs     - Reset and clear the system audit log (IT Admin)")
@@ -153,6 +158,74 @@ def run_terminal():
             print("\n--- INVENTORY SUPERVISION STATUS ---")
             inv_mgr.get_inventory_status()
             print("------------------------------------")
+
+        # =====================================================================
+        # AUDIT LOG COMMANDS (Strictly restricted to IT Admin)
+        # =====================================================================
+        elif cmd == "hire":
+            if not access_control.check_authorization(current_user, access_control.UserRole.IT_ADMIN):
+                print("[ACCESS DENIED] Only IT Admins can create user profiles.")
+                continue
+
+            name = input("Enter name of new hire: ").strip()
+            userID = input("Enter user ID: ").strip()
+            password = input("Enter password: ").strip()
+
+            roles = list(UserRole)
+            print("Select a role:")
+            for idx, role in enumerate(roles, start=1):
+                print(f"  {idx}. {role.value}")
+
+            choice = input("Enter choice (1-4): ").strip()
+            try:
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(roles):
+                    selected_role: UserRole = roles[choice_idx]
+                    print(f"Selected: {selected_role}")
+                else:
+                    print("Selection out of range.")
+            except ValueError:
+                print("Please enter a valid number.")
+
+            sms = input("Turn on sms notifications? (y/n) ").strip() == "y"
+            email = input("Turn on email notifications? (y/n) ").strip() == "y"
+            if not sms and not email:
+                print("Must have min. 1 notification method enabled; automatically enabled app notification.")
+                app = True
+            else:
+                app = input("Turn on app notifications? (y/n) ").strip() == "y"
+
+            access_control.hire(name,selected_role,userID,password,sms,email,app)
+            print(f"New user profile created. Name: {name}. User ID: {userID}.")
+
+        elif cmd == "retire/fire":
+            if not access_control.check_authorization(current_user, access_control.UserRole.IT_ADMIN):
+                print("[ACCESS DENIED] Only IT Admins can delete user profiles.")
+                continue
+
+            userID = input("Input user ID of profile to delete: ").strip()
+            targetFire = load_user(userID)
+            if not isinstance(targetFire, User):
+                print("Invalid user ID.")
+                continue
+            print(f"Preparing to delete profile: {targetFire.userID} ({targetFire.name})")
+            if input("Press 1 to confirm profile deletion.") == "1":
+                access_control.retire(userID)
+            else:
+                print("Profile deletion cancelled.")
+        
+        elif cmd == "modify_profile":
+            if not access_control.check_authorization(current_user, access_control.UserRole.IT_ADMIN):
+                print("[ACCESS DENIED] Only IT Admins can modify user profiles.")
+                continue
+            userID = input("Enter the user ID of the profile to modify: " ).strip()
+            targetField = input("Enter field to modify (name,role,password,smsNotifEnabled,emailNotifEnabled,appNotifEnabled): ").strip()
+            if targetField not in ["name", "role", "password", "smsNotifEnabled", "emailNotifEnabled", "appNotifEnabled"]:
+                print("Invalid input.")
+                continue
+            changedValue = input(f"Enter the desired new value of {targetField}: ").strip()
+
+            print(access_control.modify_profile(userID,targetField,changedValue))
 
         # =====================================================================
         # AUDIT LOG COMMANDS (Strictly restricted to IT Admin)
