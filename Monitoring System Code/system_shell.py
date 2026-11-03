@@ -9,6 +9,7 @@ from inventory_manager import InventoryManager
 from comms_gateway import CommsGateway
 from alarm_class import Alarm, AlarmType
 from user_class import UserRole, User, load_user
+from state_machine import StateMachine, SystemState
 import access_control
 
 def print_help_menu():
@@ -33,8 +34,12 @@ def print_help_menu():
     print("    view_logs      - Display centralized system audit logs (IT Admin)")
     print("    clear_logs     - Reset and clear the system audit log (IT Admin)")
     print("    sim_adc        - Simulate an incoming hardware or inventory alarm")
+    print("    sim_disconnect - Simulate a network timeout/lost connection for an ADC")
     print("    view_alarms    - List all active alarms in memory")
     print("    ack_alarm      - Acknowledge and resolve an active alarm")
+    print("  [State Machine Demo]")
+    print("    trigger_fault  - Inject a hardware fault to lock the system")
+    print("    trigger_event  - Manually trigger a specific state machine event")
     print("  [General]")
     print("    help           - Display this command menu")
     print("    exit           - Shut down the terminal shell")
@@ -44,6 +49,8 @@ def run_terminal():
     logger = EventLogger("system_audit_log.txt")
     inv_mgr = InventoryManager("system_inventory.txt", event_logger=logger)
     comms = CommsGateway(logger)
+
+    state_machine = StateMachine(logger)
     
     # Active session state managed by Access Control module
     current_user = None
@@ -103,6 +110,14 @@ def run_terminal():
         # =====================================================================
         if current_user is None:
             print("[ACCESS DENIED] You must be logged in to execute system commands. Type 'login'.")
+            continue
+
+        # =====================================================================
+        # GLOBAL STATE GUARD: Block operational commands if in FAULT state
+        # =====================================================================
+        operational_commands = ["init_adc", "add_med", "remove_med", "restock"]
+        if cmd in operational_commands and state_machine.current_state == SystemState.FAULT:
+            print(f"[BLOCKED] System is in {SystemState.FAULT.value} state. Maintenance required.")
             continue
 
         # =====================================================================
@@ -178,7 +193,7 @@ def run_terminal():
             print("------------------------------------")
 
         # =====================================================================
-        # AUDIT LOG COMMANDS (Strictly restricted to IT Admin)
+        # USER PROFILE COMMANDS (Strictly restricted to IT Admin)
         # =====================================================================
         elif cmd == "hire":
             if not access_control.check_authorization(current_user, access_control.UserRole.IT_ADMIN):
@@ -318,6 +333,11 @@ def run_terminal():
                 logger.log_event("ALARM", adc_id, f"Alarm simulated: {alarm_type.value} - {payload}", current_user.userID)
                 print(f"Alarm simulated and logged: {alarm_key}")
 
+        elif cmd == "sim_disconnect":
+            adc_id = input("Enter ADC ID to disconnect (e.g., ADC-03): ").strip()
+            print(f"\n[SYSTEM] Simulating network timeout (30s threshold reached) for {adc_id}...")
+            comms.drop_connection(adc_id)
+
         elif cmd == "view_alarms":
             if not active_alarms:
                  print("No active alarms.")
@@ -336,6 +356,30 @@ def run_terminal():
                 print(f"Alarm {alarm_key} acknowledged and cleared.")
             else:
                 print("Error: Alarm key not found.")
+
+        # =====================================================================
+        # STATE MACHINE DEMO COMMANDS
+        # =====================================================================
+        elif cmd == "trigger_fault":
+            print("[SYSTEM] Simulating sudden hardware failure...")
+            state_machine.trigger_event("hardwareFault", current_user.userID)
+            print(f"Current State is now: {state_machine.current_state.value}")
+            
+        elif cmd == "trigger_event":
+            print(f"Current State: {state_machine.current_state.value}")
+            event_name = input("Enter event (testPassed, testFailed, hardwareFault, techLogin, exit): ").strip()
+            
+            # Enforce techLogin guard for IT Admins only
+            if event_name == "techLogin":
+                if not access_control.check_authorization(current_user, access_control.UserRole.IT_ADMIN):
+                    print("[ACCESS DENIED] Only an IT_ADMIN can perform a techLogin.")
+                    continue
+                    
+            success = state_machine.trigger_event(event_name, current_user.userID)
+            if success:
+                print(f"State updated successfully. New State: {state_machine.current_state.value}")
+            else:
+                print(f"[REJECTED] The event '{event_name}' is invalid in the {state_machine.current_state.value} state.")
                 
         else:
             print("Unknown command. Type 'help' for a list of valid commands.")
