@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Dict
 import csv
+import os
 
 class UserRole(str, Enum):
     NURSE = "NURSE"
@@ -45,7 +46,12 @@ class User:
 # )
 
 def load_user(targetUserID: str): #pulls user from users.csv to validate login
-    with open("users.csv", mode = "r", newline = "", encoding = "utf-8") as file:
+
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.join(current_dir, "users.csv")
+
+
+    with open(csv_path, mode = "r", newline = "", encoding = "utf-8") as file:
         reader = csv.DictReader(file)
 
         for row in reader:
