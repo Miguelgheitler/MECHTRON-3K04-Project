@@ -383,8 +383,35 @@ def run_terminal():
             else:
                 print("Error: Alarm key not found in active alarms.")
                 
+        # ==========================================
+        # STATE MACHINE DEMO COMMANDS
+        # ==========================================
+
+        elif cmd == "trigger_fault":
+            print("[SYSTEM] Simulating sudden hardware failure...")
+            state_machine.trigger_event("hardwareFault", current_user.userID)
+            print(f"Current State is now: {state_machine.current_state.value}")
+
+        elif cmd == "trigger_event":
+            print(f"Current State: {state_machine.current_state.value}")
+            event_name = input("Enter event (testPassed, testFailed, hardwareFault, techLogin, exit): ").strip()
+
+            # Enforce techLogin guard for IT Admins only
+            if event_name == "techLogin":
+                if not access_control.check_authorization(current_user, access_control.UserRole.IT_ADMIN):
+                    print("[ACCESS DENIED] Only an IT_ADMIN can perform a techLogin.")
+                    continue
+
+            success = state_machine.trigger_event(event_name, current_user.userID)
+            if success:
+                print(f"State updated successfully. New State: {state_machine.current_state.value}")
+            else:
+                print(f"[REJECTED] The event '{event_name}' is invalid in the {state_machine.current_state.value} state.")
+
         else:
             print("Unknown command. Type 'help' for a list of valid commands.")
+
+           
 
 if __name__ == "__main__":
     run_terminal()
