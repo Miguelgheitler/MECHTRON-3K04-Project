@@ -109,6 +109,22 @@ class InventoryManager:
         if "." in val_str:
             return val_str.split(".")[-1]
         return val_str
+
+    def clear_alarm_status(self, adc_id: str, med_name: str) -> bool:
+        """
+        Public Interface method to clear an active alarm status for a specific medication, 
+        resetting its alarm status column back to NORMAL.
+        """
+        if not self.medication_exists(adc_id, med_name):
+            return False
+        
+        med_data = self._inventory_cache[adc_id][med_name]
+        med_data["alarm_msg"] = "NORMAL"
+        self._sync_to_storage()
+        
+        print(f"[INVENTORY UPDATE] Alarm cleared for {adc_id} -> {med_name} (Status: NORMAL)")
+        
+        return True
     
     def init_adc(self, adc_id: str) -> None:
         """
@@ -218,7 +234,7 @@ class InventoryManager:
 
     def process_incoming_alarm(self, alarm: Alarm, med_name: str) -> bool:
         """
-        Applied when an alarm is transmitted by an ADC. Cleans up Enum names for storage.
+        Applied when an alarm is transmitted by an ADC. Updates state and syncs to storage.
         """
         adc_id = alarm.adcID
         if not self.medication_exists(adc_id, med_name):
@@ -228,15 +244,14 @@ class InventoryManager:
         med_data = self._inventory_cache[adc_id][med_name]
         severity = "CRITICAL" if alarm.isCritical else "MINOR"
         
-        # Clean up enum prefix (e.g., AlarmType.LOW_INVENTORY -> LOW_INVENTORY)
         clean_alarm_type = self._format_alarm_name(alarm.alarmType)
         med_data["alarm_msg"] = f"ACTIVE: {clean_alarm_type} ({severity})"
         
         self._sync_to_storage()
         print(f"[INVENTORY UPDATE] Applied alarm status to {adc_id} -> {med_name}")
         
-        if self._event_logger:
-            self._event_logger.log_event("ALARM", adc_id, f"Alarm received from ADC: {clean_alarm_type} - {alarm.details}", "SYSTEM")
+        # REMOVED the duplicate self._event_logger.log_event() here 
+        # because CommsGateway handles logging the network telemetry event!
         return True
 
     def get_inventory_status(self) -> None:
