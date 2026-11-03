@@ -16,3 +16,4 @@ TIMESTAMP                   | LOG_TYPE   | SOURCE     | USER       | DETAILS
 [2026-11-02 22:57:49.964] [SECURITY] | Source: AUTH | User: I-001 | Details: User Nick Weiler (IT_ADMIN) successfully logged in.
 [2026-11-02 22:58:27.049] [ALARM] | Source: ADC-01 | User: SYSTEM | Details: Critical message received: LOW_INVENTORY (Insulin): low insulin
 [2026-11-02 22:59:05.998] [ALARM_ACK] | Source: I-001 | User: I-001 | Details: User Nick Weiler (IT_ADMIN) acknowledged and cleared ADC-01-LOW_INVENTORY-Insulin
+[2026-11-02 23:26:51.804] [SECURITY] | Source: AUTH | User: I-001 | Details: User Nick Weiler (IT_ADMIN) successfully logged in.
