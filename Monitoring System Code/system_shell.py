@@ -159,7 +159,19 @@ def run_terminal():
                 continue
 
             adc_id = input("Enter ADC ID (e.g., ADC-03): ").strip()
+            
+            # 1. Validate Cabinet existence IMMEDIATELY before asking for medication name
+            if not inv_mgr.adc_exists(adc_id):
+                print(f"[ERROR] ADC Cabinet '{adc_id}' does not exist or has not been initialized. Removal cancelled.")
+                continue
+
             med_name = input("Enter Medication Name to remove: ").strip()
+            
+            # 2. Validate Medication existence SECOND
+            if not inv_mgr.medication_exists(adc_id, med_name):
+                print(f"[ERROR] Medication '{med_name}' not found in '{adc_id}'. Removal cancelled.")
+                continue
+
             inv_mgr.remove_medication(adc_id, med_name, operator_id=current_user.userID)
 
         elif cmd == "restock":
