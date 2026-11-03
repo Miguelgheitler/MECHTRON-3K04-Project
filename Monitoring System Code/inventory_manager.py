@@ -103,7 +103,13 @@ class InventoryManager:
     # =========================================================================
     # PUBLIC INTERFACE (What other modules are allowed to call)
     # =========================================================================
-
+    def _format_alarm_name(self, alarm_type) -> str:
+        """Helper to strip Python enum prefixes like 'AlarmType.' for clean display."""
+        val_str = str(alarm_type)
+        if "." in val_str:
+            return val_str.split(".")[-1]
+        return val_str
+    
     def init_adc(self, adc_id: str) -> None:
         """
         Initializes a new ADC cabinet in memory and writes a placeholder row to storage.
@@ -117,9 +123,9 @@ class InventoryManager:
             print(f"[INVENTORY NOTICE] ADC '{adc_id}' is already initialized.")
             return
 
-        # Initialize with an empty dictionary holding a placeholder state
+        # Initialize using '---' as a clean medication name placeholder
         self._inventory_cache[adc_id] = {
-            "__PLACEHOLDER__": {
+            "---": {
                 "stock": 0,
                 "min_par": 0,
                 "max_par": 0,
@@ -131,23 +137,18 @@ class InventoryManager:
         
         if self._event_logger:
             self._event_logger.log_event("INVENTORY", adc_id, "Initialized new ADC cabinet.", "SYSTEM")
-
     def add_medication(self, adc_id: str, med_name: str, stock: int, min_par: int, max_par: int, operator_id: str = "PHARMACIST-01") -> bool:
-        """
-        Adds a medication to an existing ADC cabinet. Fails if the ADC was not initialized.
-        """
         adc_id = adc_id.strip().upper()
         
-        # Enforce that the ADC must exist first
         if adc_id not in self._inventory_cache:
             print(f"[INVENTORY ERROR] ADC '{adc_id}' has not been initialized. Please initialize it first using 'init_adc'.")
             return False
 
         cabinet = self._inventory_cache[adc_id]
 
-        # Remove the placeholder if it's the first real medication being added
-        if "__PLACEHOLDER__" in cabinet:
-            del cabinet["__PLACEHOLDER__"]
+        # Remove the '---' placeholder if it's the first real medication being added
+        if "---" in cabinet:
+            del cabinet["---"]
 
         if med_name in cabinet:
             print(f"[INVENTORY ERROR] Medication '{med_name}' already exists in '{adc_id}'.")
@@ -165,7 +166,7 @@ class InventoryManager:
         if self._event_logger:
             self._event_logger.log_event("INVENTORY", adc_id, f"Added medication {med_name} with stock {stock}.", operator_id)
         return True
-
+    
     def remove_medication(self, adc_id: str, med_name: str, operator_id: str = "PHARMACIST-01") -> None:
         """
         Public Interface method to remove a medication from a specific ADC cabinet.
@@ -217,25 +218,25 @@ class InventoryManager:
 
     def process_incoming_alarm(self, alarm: Alarm, med_name: str) -> bool:
         """
-        Public Interface method called when an alarm is transmitted by an ADC.
-        Validates existence first. Returns True if successful, False if invalid.
+        Applied when an alarm is transmitted by an ADC. Cleans up Enum names for storage.
         """
         adc_id = alarm.adcID
         if not self.medication_exists(adc_id, med_name):
             print(f"[INVENTORY ERROR] Medication '{med_name}' not found in '{adc_id}'. Alarm ingestion rejected.")
-            if self._event_logger:
-                self._event_logger.log_event("ALARM_ERROR", adc_id, f"Rejected alarm for non-existent medication '{med_name}'.", "SYSTEM")
             return False
 
         med_data = self._inventory_cache[adc_id][med_name]
         severity = "CRITICAL" if alarm.isCritical else "MINOR"
-        med_data["alarm_msg"] = f"ACTIVE: {alarm.alarmType} ({severity})"
-        self._sync_to_storage()
         
+        # Clean up enum prefix (e.g., AlarmType.LOW_INVENTORY -> LOW_INVENTORY)
+        clean_alarm_type = self._format_alarm_name(alarm.alarmType)
+        med_data["alarm_msg"] = f"ACTIVE: {clean_alarm_type} ({severity})"
+        
+        self._sync_to_storage()
         print(f"[INVENTORY UPDATE] Applied alarm status to {adc_id} -> {med_name}")
         
         if self._event_logger:
-            self._event_logger.log_event("ALARM", adc_id, f"Alarm received from ADC: {alarm.alarmType} - {alarm.details}", "SYSTEM")
+            self._event_logger.log_event("ALARM", adc_id, f"Alarm received from ADC: {clean_alarm_type} - {alarm.details}", "SYSTEM")
         return True
 
     def get_inventory_status(self) -> None:
