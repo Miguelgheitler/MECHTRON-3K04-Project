@@ -118,12 +118,18 @@ def run_terminal():
                 continue
 
             adc_id = input("Enter ADC ID (e.g., ADC-03): ").strip()
+            
+            # Strict check: ADC must be initialized first!
+            if not inv_mgr.adc_exists(adc_id):
+                print(f"[ERROR] ADC '{adc_id}' does not exist or has not been initialized. Run 'init_adc' first.")
+                continue
+
             med_name = input("Enter Medication Name (e.g., Morphine): ").strip()
             try:
                 stock = int(input("Initial Stock: "))
                 min_par = int(input("Minimum Par Level: "))
                 max_par = int(input("Maximum Par Level: "))
-                inv_mgr.add_medication(adc_id, med_name, stock, min_par, max_par)
+                inv_mgr.add_medication(adc_id, med_name, stock, min_par, max_par, operator_id=current_user.userID)
             except ValueError:
                 print("[ERROR] Stock and par levels must be integers.")
 
@@ -142,12 +148,24 @@ def run_terminal():
                 continue
 
             adc_id = input("Enter ADC ID (e.g., ADC-03): ").strip()
+            
+            # 1. Validate Cabinet existence FIRST
+            if not inv_mgr.adc_exists(adc_id):
+                print(f"[ERROR] ADC Cabinet '{adc_id}' does not exist or has not been initialized. Restock cancelled.")
+                continue
+
             med_name = input("Enter Medication Name: ").strip()
+            
+            # 2. Validate Medication existence SECOND
+            if not inv_mgr.medication_exists(adc_id, med_name):
+                print(f"[ERROR] Medication '{med_name}' not found in '{adc_id}'. Restock cancelled.")
+                continue
+
             try:
                 new_stock = int(input("New Stock Level: "))
                 inv_mgr.update_stock_level(adc_id, med_name, new_stock, operator_id=current_user.userID)
             except ValueError:
-                print("[ERROR] Stock level must be integers.")
+                print("[ERROR] Stock level must be an integer.")
 
         elif cmd == "view_inventory":
             print("\n--- INVENTORY SUPERVISION STATUS ---")
@@ -178,6 +196,11 @@ def run_terminal():
         elif cmd == "sim_adc":
             adc_id = input("Enter ADC ID (e.g., ADC-03): ").strip()
             
+            # 1. Validate Cabinet existence IMMEDIATELY before asking for anything else
+            if not inv_mgr.adc_exists(adc_id):
+                print(f"[ERROR] ADC Cabinet '{adc_id}' does not exist or has not been initialized. Simulation cancelled.")
+                continue
+
             print("Alarm Types: 1) CONNECTION_LOST, 2) CABINET_FAULT, 3) LOW_INVENTORY")
             type_choice = input("Select alarm type (1-3): ").strip()
             
@@ -191,23 +214,36 @@ def run_terminal():
                 print("Invalid selection.")
                 continue
 
-            payload = input("Enter message payload: ")
-            is_crit = input("Is this critical? (y/n): ").strip().lower() == 'y'
-            
-            # Create Alarm object
-            new_alarm = Alarm(adcID=adc_id, alarmType=alarm_type, isCritical=is_crit, details=payload)
-            alarm_key = f"{adc_id}-{alarm_type.value}"
-            active_alarms[alarm_key] = new_alarm
-            
-            # If low inventory, automatically update inventory manager row and file
             if alarm_type == AlarmType.LOW_INVENTORY:
+
                 med_name = input("Enter medication name affected by low inventory: ").strip()
+                
+                # 2. Validate Medication existence SECOND
+                if not inv_mgr.medication_exists(adc_id, med_name):
+                    print(f"[ERROR] Medication '{med_name}' not found in '{adc_id}'. Alarm simulation cancelled.")
+                    continue
+                
+                payload = input("Enter message payload: ")
+                is_crit = input("Is this critical? (y/n): ").strip().lower() == 'y'
+                
+                new_alarm = Alarm(adcID=adc_id, alarmType=alarm_type, isCritical=is_crit, details=payload)
+                alarm_key = f"{adc_id}-{alarm_type.value}"
+                active_alarms[alarm_key] = new_alarm
+                
                 inv_mgr.process_incoming_alarm(new_alarm, med_name)
+                print(f"Alarm simulated and logged: {alarm_key}")
+
             else:
+                payload = input("Enter message payload: ")
+                is_crit = input("Is this critical? (y/n): ").strip().lower() == 'y'
+                
+                new_alarm = Alarm(adcID=adc_id, alarmType=alarm_type, isCritical=is_crit, details=payload)
+                alarm_key = f"{adc_id}-{alarm_type.value}"
+                active_alarms[alarm_key] = new_alarm
+                
                 comms.receive_adc_message(adc_id, payload, "critical" if is_crit else "routine")
                 logger.log_event("ALARM", adc_id, f"Alarm simulated: {alarm_type.value} - {payload}", current_user.userID)
-
-            print(f"Alarm simulated and logged: {alarm_key}")
+                print(f"Alarm simulated and logged: {alarm_key}")
 
         elif cmd == "view_alarms":
             if not active_alarms:

@@ -7,5 +7,9 @@ ADC_ID | MEDICATION_NAME | STOCK | MIN_PAR | MAX_PAR | ALARM_STATUS
 ADC-01 | Insulin | 20 | 10 | 300 | NORMAL
 ADC-01 | Morphine | 10 | 20 | 100 | NORMAL
 ADC-02 | Morphine | 25 | 20 | 100 | NORMAL
-ADC-04 | Insulin | 20 | 5 | 100 | NORMAL
+ADC-04 | Insulin | 3 | 5 | 100 | NORMAL
 ADC-04 | Morphine | 30 | 10 | 100 | ACTIVE: AlarmType.LOW_INVENTORY (MINOR)
+ADC-123 | __PLACEHOLDER__ | 0 | 0 | 0 | No medications registered
+ADC-23 | Morphine | 20 | 5 | 100 | NORMAL
+ADC-54 | Insulin | 45 | 2 | 100 | NORMAL
+ADC-75 | 4 | 3 | 100 | 150 | NORMAL

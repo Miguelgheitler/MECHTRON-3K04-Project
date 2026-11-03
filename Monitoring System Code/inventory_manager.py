@@ -106,50 +106,65 @@ class InventoryManager:
 
     def init_adc(self, adc_id: str) -> None:
         """
-        Public Interface method to initialize a new ADC cabinet in the system.
-        Enforces 'ADC-##' format validation.
+        Initializes a new ADC cabinet in memory and writes a placeholder row to storage.
         """
-        if not self._validate_adc_format(adc_id):
-            print(f"[INVENTORY ERROR] Invalid ADC ID format '{adc_id}'. Must follow format 'ADC-##' (e.g., ADC-03).")
+        adc_id = adc_id.strip().upper()
+        if not adc_id.startswith("ADC-"):
+            print("[INVENTORY ERROR] Invalid ADC ID format. Must start with 'ADC-' (e.g., ADC-03).")
             return
 
+        if adc_id in self._inventory_cache:
+            print(f"[INVENTORY NOTICE] ADC '{adc_id}' is already initialized.")
+            return
+
+        # Initialize with an empty dictionary holding a placeholder state
+        self._inventory_cache[adc_id] = {
+            "__PLACEHOLDER__": {
+                "stock": 0,
+                "min_par": 0,
+                "max_par": 0,
+                "alarm_msg": "No medications registered"
+            }
+        }
+        self._sync_to_storage()
+        print(f"[INVENTORY SUCCESS] ADC cabinet '{adc_id}' initialized with no medications registered.")
+        
+        if self._event_logger:
+            self._event_logger.log_event("INVENTORY", adc_id, "Initialized new ADC cabinet.", "SYSTEM")
+
+    def add_medication(self, adc_id: str, med_name: str, stock: int, min_par: int, max_par: int, operator_id: str = "PHARMACIST-01") -> bool:
+        """
+        Adds a medication to an existing ADC cabinet. Fails if the ADC was not initialized.
+        """
+        adc_id = adc_id.strip().upper()
+        
+        # Enforce that the ADC must exist first
         if adc_id not in self._inventory_cache:
-            self._inventory_cache[adc_id] = {}
-            self._sync_to_storage()
-            print(f"[INVENTORY SUCCESS] New ADC '{adc_id}' initialized.")
-            if self._event_logger:
-                self._event_logger.log_event("INVENTORY", adc_id, f"Initialized new ADC cabinet.", "SYSTEM")
-        else:
-            print(f"[INVENTORY NOTICE] ADC '{adc_id}' already exists.")
+            print(f"[INVENTORY ERROR] ADC '{adc_id}' has not been initialized. Please initialize it first using 'init_adc'.")
+            return False
 
-    def add_medication(self, adc_id: str, med_name: str, initial_stock: int, min_par: int, max_par: int) -> None:
-        """
-        Public Interface method to add a new medication name and its par levels to a specific ADC.
-        Prevents duplicate medication entries of the same name within the same ADC.
-        """
-        if not self._validate_adc_format(adc_id):
-            print(f"[INVENTORY ERROR] Cannot add medication to invalid ADC ID format '{adc_id}'.")
-            return
+        cabinet = self._inventory_cache[adc_id]
 
-        if adc_id not in self._inventory_cache:
-            self.init_adc(adc_id)
+        # Remove the placeholder if it's the first real medication being added
+        if "__PLACEHOLDER__" in cabinet:
+            del cabinet["__PLACEHOLDER__"]
 
-        # Check if medication already exists in this ADC
-        if med_name in self._inventory_cache[adc_id]:
-            print(f"[INVENTORY NOTICE] Medication '{med_name}' already exists in '{adc_id}'. Duplicate entry prevented.")
-            return
+        if med_name in cabinet:
+            print(f"[INVENTORY ERROR] Medication '{med_name}' already exists in '{adc_id}'.")
+            return False
 
-        self._inventory_cache[adc_id][med_name] = {
-            "stock": initial_stock,
+        cabinet[med_name] = {
+            "stock": stock,
             "min_par": min_par,
             "max_par": max_par,
             "alarm_msg": "NORMAL"
         }
         self._sync_to_storage()
-        print(f"[INVENTORY SUCCESS] Added medication '{med_name}' to {adc_id}.")
+        print(f"[INVENTORY SUCCESS] Added {med_name} to {adc_id} (Stock: {stock}).")
         
         if self._event_logger:
-            self._event_logger.log_event("INVENTORY", adc_id, f"Added medication {med_name} with stock {initial_stock}.", "PHARMACIST")
+            self._event_logger.log_event("INVENTORY", adc_id, f"Added medication {med_name} with stock {stock}.", operator_id)
+        return True
 
     def remove_medication(self, adc_id: str, med_name: str, operator_id: str = "PHARMACIST-01") -> None:
         """
@@ -169,20 +184,15 @@ class InventoryManager:
         if self._event_logger:
             self._event_logger.log_event("INVENTORY", adc_id, f"Removed medication {med_name} from cabinet inventory.", operator_id)
 
-    def update_stock_level(self, adc_id: str, med_name: str, new_stock: int, operator_id: str = "PHARMACIST-01") -> None:
-        """
-        Public Interface method to update stock levels (e.g. during restocking or dispensing).
-        If stock is restored to or above minimum par, any existing inventory alarm status is cleared.
-        """
-        if adc_id not in self._inventory_cache or med_name not in self._inventory_cache[adc_id]:
+    def update_stock_level(self, adc_id: str, med_name: str, new_stock: int, operator_id: str = "PHARMACIST-01") -> bool:
+        if not self.medication_exists(adc_id, med_name):
             print(f"[INVENTORY ERROR] Medication '{med_name}' not found in '{adc_id}'.")
-            return
+            return False
 
         med_data = self._inventory_cache[adc_id][med_name]
         old_stock = med_data["stock"]
         med_data["stock"] = new_stock
 
-        # Automatically clear inventory alarm status if restocked to safe levels
         if new_stock >= med_data["min_par"] and "LOW_INVENTORY" in med_data.get("alarm_msg", ""):
             med_data["alarm_msg"] = "NORMAL"
 
@@ -191,25 +201,42 @@ class InventoryManager:
         
         if self._event_logger:
             self._event_logger.log_event("INVENTORY", adc_id, f"Updated stock for {med_name} from {old_stock} to {new_stock}.", operator_id)
+        return True
 
-    def process_incoming_alarm(self, alarm: Alarm, med_name: str) -> None:
+    def adc_exists(self, adc_id: str) -> bool:
         """
-        Public Interface method called when an alarm is transmitted over by an ADC.
-        Automatically logs the alarm and updates the specific ADC/medication row in the 
-        inventory manager file to reflect the active alarm message.
+        Public Interface method to check if an ADC cabinet has been initialized in inventory.
+        """
+        return adc_id in self._inventory_cache
+    
+    def medication_exists(self, adc_id: str, med_name: str) -> bool:
+        """
+        Public Interface method to check if a medication exists within a specific ADC cabinet.
+        """
+        return adc_id in self._inventory_cache and med_name in self._inventory_cache[adc_id]
+
+    def process_incoming_alarm(self, alarm: Alarm, med_name: str) -> bool:
+        """
+        Public Interface method called when an alarm is transmitted by an ADC.
+        Validates existence first. Returns True if successful, False if invalid.
         """
         adc_id = alarm.adcID
-        if adc_id in self._inventory_cache and med_name in self._inventory_cache[adc_id]:
-            med_data = self._inventory_cache[adc_id][med_name]
-            severity = "CRITICAL" if alarm.isCritical else "MINOR"
-            med_data["alarm_msg"] = f"ACTIVE: {alarm.alarmType} ({severity})"
-            self._sync_to_storage()
-            
-            print(f"[INVENTORY UPDATE] Applied alarm status to {adc_id} -> {med_name}")
+        if not self.medication_exists(adc_id, med_name):
+            print(f"[INVENTORY ERROR] Medication '{med_name}' not found in '{adc_id}'. Alarm ingestion rejected.")
+            if self._event_logger:
+                self._event_logger.log_event("ALARM_ERROR", adc_id, f"Rejected alarm for non-existent medication '{med_name}'.", "SYSTEM")
+            return False
+
+        med_data = self._inventory_cache[adc_id][med_name]
+        severity = "CRITICAL" if alarm.isCritical else "MINOR"
+        med_data["alarm_msg"] = f"ACTIVE: {alarm.alarmType} ({severity})"
+        self._sync_to_storage()
         
-        # Automatically log the alarm event via Event Logger
+        print(f"[INVENTORY UPDATE] Applied alarm status to {adc_id} -> {med_name}")
+        
         if self._event_logger:
             self._event_logger.log_event("ALARM", adc_id, f"Alarm received from ADC: {alarm.alarmType} - {alarm.details}", "SYSTEM")
+        return True
 
     def get_inventory_status(self) -> None:
         """
