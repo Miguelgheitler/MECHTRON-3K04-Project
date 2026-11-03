@@ -4,36 +4,15 @@
 ==================================================================
 TIMESTAMP                   | LOG_TYPE   | SOURCE     | USER       | DETAILS
 --------------------------------------------------------------------------------
-[2026-11-01 19:58:38.629] [SECURITY] | Source: AUTH | User: I-001 | Details: User Nick Weiler logged out.
-[2026-11-01 19:58:46.186] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler (PHARMACIST) successfully logged in.
-[2026-11-02 20:00:52.082] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler (PHARMACIST) successfully logged in.
-[2026-11-02 20:21:18.424] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler logged out.
-[2026-11-02 20:21:26.211] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler (PHARMACIST) successfully logged in.
-[2026-11-02 20:22:05.745] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler logged out.
-[2026-11-02 20:22:17.671] [SECURITY] | Source: AUTH | User: N-001 | Details: User Evan Edgell (NURSE) successfully logged in.
-[2026-11-02 20:22:22.596] [SECURITY] | Source: AUTH | User: N-001 | Details: User Evan Edgell logged out.
-[2026-11-02 20:22:33.955] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler (PHARMACIST) successfully logged in.
-[2026-11-02 20:24:52.464] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler (PHARMACIST) successfully logged in.
-[2026-11-02 20:26:54.028] [INVENTORY] | Source: ADC-04 | User: P-001 | Details: Updated stock for Insulin from 20 to 3.
-[2026-11-02 20:31:15.410] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler (PHARMACIST) successfully logged in.
-[2026-11-02 20:31:41.279] [INVENTORY] | Source: ADC-54 | User: SYSTEM | Details: Initialized new ADC cabinet.
-[2026-11-02 20:34:33.574] [INVENTORY] | Source: ADC-54 | User: PHARMACIST | Details: Added medication Insulin with stock 45.
-[2026-11-02 20:34:47.115] [INVENTORY] | Source: ADC-75 | User: SYSTEM | Details: Initialized new ADC cabinet.
-[2026-11-02 20:34:47.117] [INVENTORY] | Source: ADC-75 | User: PHARMACIST | Details: Added medication 4 with stock 3.
-[2026-11-02 20:39:32.481] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler (PHARMACIST) successfully logged in.
-[2026-11-02 20:39:52.599] [INVENTORY] | Source: ADC-23 | User: SYSTEM | Details: Initialized new ADC cabinet.
-[2026-11-02 20:40:22.357] [INVENTORY] | Source: ADC-23 | User: P-001 | Details: Added medication Morphine with stock 20.
-[2026-11-02 20:41:01.320] [INVENTORY] | Source: ADC-123 | User: SYSTEM | Details: Initialized new ADC cabinet.
-[2026-11-02 21:52:47.412] [INVENTORY] | Source: ADC-75 | User: P-001 | Details: Removed medication 4 from cabinet inventory.
-[2026-11-02 21:52:59.500] [INVENTORY] | Source: ADC-54 | User: P-001 | Details: Removed medication Insulin from cabinet inventory.
-[2026-11-02 21:56:10.709] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler (PHARMACIST) successfully logged in.
-[2026-11-02 21:56:43.736] [INVENTORY] | Source: ADC-23 | User: P-001 | Details: Removed medication Morphine from cabinet inventory.
-[2026-11-02 21:56:59.137] [INVENTORY] | Source: ADC-03 | User: SYSTEM | Details: Initialized new ADC cabinet.
-[2026-11-02 21:57:35.450] [INVENTORY] | Source: ADC-03 | User: P-001 | Details: Added medication Morphine with stock 25.
-[2026-11-02 21:58:01.490] [ALARM] | Source: ADC-03 | User: SYSTEM | Details: Alarm received from ADC: AlarmType.LOW_INVENTORY - low inventory for morphine in ADC-03
-[2026-11-02 22:04:51.371] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler (PHARMACIST) successfully logged in.
-[2026-11-02 22:05:41.595] [ALARM] | Source: ADC-01 | User: SYSTEM | Details: Alarm received from ADC: LOW_INVENTORY - low inventory for Morphine
-[2026-11-02 22:06:23.673] [INVENTORY] | Source: ADC-123 | User: P-001 | Details: Removed medication __PLACEHOLDER__ from cabinet inventory.
-[2026-11-02 22:06:46.589] [INVENTORY] | Source: ADC-04 | User: P-001 | Details: Removed medication Morphine from cabinet inventory.
-[2026-11-02 22:07:01.398] [INVENTORY] | Source: ADC-03 | User: P-001 | Details: Removed medication Morphine from cabinet inventory.
-[2026-11-02 22:18:16.375] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler (PHARMACIST) successfully logged in.
+[2026-11-02 22:46:44.301] [ALARM] | Source: ADC-01 | User: SYSTEM | Details: Critical message received: connection lost to ADC-01
+[2026-11-02 22:46:44.302] [ALARM] | Source: ADC-01 | User: SYSTEM | Details: Alarm Telemetry Received: CONNECTION_LOST - connection lost to ADC-01
+[2026-11-02 22:48:45.549] [SECURITY] | Source: AUTH | User: I-001 | Details: User Nick Weiler (IT_ADMIN) successfully logged in.
+[2026-11-02 22:49:09.739] [ALARM] | Source: ADC-03 | User: SYSTEM | Details: Critical message received: connection lost to ADC-03
+[2026-11-02 22:49:51.201] [ALARM] | Source: ADC-03 | User: SYSTEM | Details: Critical message received: drawer jammed
+[2026-11-02 22:53:11.481] [SECURITY] | Source: AUTH | User: I-001 | Details: User Nick Weiler (IT_ADMIN) successfully logged in.
+[2026-11-02 22:53:33.184] [COMMS] | Source: ADC-03 | User: SYSTEM | Details: Routine telemetry received: CABINET_FAULT: drawer jammed
+[2026-11-02 22:55:02.768] [ALARM] | Source: ADC-04 | User: SYSTEM | Details: Alarm received from ADC: LOW_INVENTORY - insulin low
+[2026-11-02 22:55:02.769] [ALARM] | Source: ADC-04 | User: SYSTEM | Details: Critical message received: LOW_INVENTORY (Insulin): insulin low
+[2026-11-02 22:57:49.964] [SECURITY] | Source: AUTH | User: I-001 | Details: User Nick Weiler (IT_ADMIN) successfully logged in.
+[2026-11-02 22:58:27.049] [ALARM] | Source: ADC-01 | User: SYSTEM | Details: Critical message received: LOW_INVENTORY (Insulin): low insulin
+[2026-11-02 22:59:05.998] [ALARM_ACK] | Source: I-001 | User: I-001 | Details: User Nick Weiler (IT_ADMIN) acknowledged and cleared ADC-01-LOW_INVENTORY-Insulin

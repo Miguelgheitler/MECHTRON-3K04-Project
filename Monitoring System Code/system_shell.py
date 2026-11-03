@@ -281,7 +281,6 @@ def run_terminal():
         elif cmd == "sim_adc":
             adc_id = input("Enter ADC ID (e.g., ADC-03): ").strip()
             
-            # 1. Validate Cabinet existence IMMEDIATELY before asking for anything else
             if not inv_mgr.adc_exists(adc_id):
                 print(f"[ERROR] ADC Cabinet '{adc_id}' does not exist or has not been initialized. Simulation cancelled.")
                 continue
@@ -300,10 +299,8 @@ def run_terminal():
                 continue
 
             if alarm_type == AlarmType.LOW_INVENTORY:
-
                 med_name = input("Enter medication name affected by low inventory: ").strip()
                 
-                # 2. Validate Medication existence SECOND
                 if not inv_mgr.medication_exists(adc_id, med_name):
                     print(f"[ERROR] Medication '{med_name}' not found in '{adc_id}'. Alarm simulation cancelled.")
                     continue
@@ -312,13 +309,20 @@ def run_terminal():
                 is_crit = input("Is this critical? (y/n): ").strip().lower() == 'y'
                 
                 new_alarm = Alarm(adcID=adc_id, alarmType=alarm_type, isCritical=is_crit, details=payload)
-                alarm_key = f"{adc_id}-{alarm_type.value}"
-                active_alarms[alarm_key] = new_alarm
+                alarm_key = f"{adc_id}-{alarm_type.value}-{med_name}"
+                active_alarms[alarm_key] = (new_alarm, med_name)
                 
+                # 1. Update inventory state and storage
                 inv_mgr.process_incoming_alarm(new_alarm, med_name)
+                
+                # 2. Route the hardware telemetry message through CommsGateway for uniform logging
+                severity_str = "critical" if is_crit else "routine"
+                comms.receive_adc_message(adc_id, f"LOW_INVENTORY ({med_name}): {payload}", severity_str)
+                
                 print(f"Alarm simulated and logged: {alarm_key}")
 
             else:
+                # Handles CONNECTION_LOST and CABINET_FAULT uniformly via CommsGateway
                 payload = input("Enter message payload: ")
                 is_crit = input("Is this critical? (y/n): ").strip().lower() == 'y'
                 
@@ -326,8 +330,9 @@ def run_terminal():
                 alarm_key = f"{adc_id}-{alarm_type.value}"
                 active_alarms[alarm_key] = new_alarm
                 
-                comms.receive_adc_message(adc_id, payload, "critical" if is_crit else "routine")
-                logger.log_event("ALARM", adc_id, f"Alarm simulated: {alarm_type.value} - {payload}", current_user.userID)
+                severity_str = "critical" if is_crit else "routine"
+                comms.receive_adc_message(adc_id, f"{alarm_type.value}: {payload}", severity_str)
+                
                 print(f"Alarm simulated and logged: {alarm_key}")
 
         elif cmd == "view_alarms":
@@ -335,19 +340,28 @@ def run_terminal():
                  print("No active alarms.")
             else:
                  print("\n--- ACTIVE ALARMS ---")
-                 for key, alarm in active_alarms.items():
-                     print(f"[{key}]: {alarm}")
+                 for key, item in active_alarms.items():
+                     alarm = item[0] if isinstance(item, tuple) else item
+                     print(f"[{key}]: Alarm [CRITICAL]" if alarm.isCritical else f"[{key}]: Alarm [ROUTINE]")
                  print("---------------------")
 
         elif cmd == "ack_alarm":
-            alarm_key = input("Enter the Alarm Key to acknowledge (e.g., ADC-03-LOW_INVENTORY): ").strip()
+            alarm_key = input("Enter the Alarm Key to acknowledge (e.g., ADC-04-LOW_INVENTORY-Insulin): ").strip()
             
             if alarm_key in active_alarms:
+                item = active_alarms[alarm_key]
+                
+                # If it's a medication-specific low inventory alarm, clear its status via InventoryManager
+                if isinstance(item, tuple):
+                    alarm, med_name = item
+                    if alarm.alarmType == AlarmType.LOW_INVENTORY:
+                        inv_mgr.clear_alarm_status(alarm.adcID, med_name)
+                
                 logger.log_event("ALARM_ACK", current_user.userID, f"User {current_user.name} ({current_user.role.value}) acknowledged and cleared {alarm_key}", current_user.userID)
                 del active_alarms[alarm_key]
                 print(f"Alarm {alarm_key} acknowledged and cleared.")
             else:
-                print("Error: Alarm key not found.")
+                print("Error: Alarm key not found in active alarms.")
                 
         else:
             print("Unknown command. Type 'help' for a list of valid commands.")
