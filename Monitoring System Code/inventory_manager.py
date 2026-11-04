@@ -210,8 +210,8 @@ class InventoryManager:
         old_stock = med_data["stock"]
         med_data["stock"] = new_stock
 
-        if new_stock >= med_data["min_par"] and "LOW_INVENTORY" in med_data.get("alarm_msg", ""):
-            med_data["alarm_msg"] = "NORMAL"
+        # if new_stock >= med_data["min_par"] and "LOW_INVENTORY" in med_data.get("alarm_msg", ""):   #automatically clears alarm status 
+        #     med_data["alarm_msg"] = "NORMAL"
 
         self._sync_to_storage()
         print(f"[INVENTORY SUCCESS] {adc_id} - {med_name} stock updated: {old_stock} -> {new_stock}")

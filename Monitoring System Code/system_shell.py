@@ -192,25 +192,37 @@ def run_terminal():
             if current_user.role not in [access_control.UserRole.NURSE, access_control.UserRole.PHARMACIST]:
                 print("[ACCESS DENIED] Only Nurses or Pharmacists can dispense medication.")
                 continue
-            
+
             pid = input("Enter Patient ID receiving medication: ").strip()
             # Verify patient exists first
             if patient_db.get_anonymized_schedule(pid) == "Patient not found.":
-                print("[ERROR] Cannot dispense. Patient ID does not exist.")
+                print(f"[ERROR] Cannot dispense. Patient ID does not exist.")
                 continue
-                
+
             adc_id = input("Enter ADC ID dispensing from (e.g., ADC-01): ").strip()
             med_name = input("Enter Medication Name: ").strip()
-            
+
+            # Verify medication exists in cache before checking/updating
+            if not inv_mgr.medication_exists(adc_id, med_name):
+                print(f"[ERROR] Medication '{med_name}' not found in cabinet '{adc_id}'.")
+                continue
+
             try:
                 new_stock = int(input("Enter New Stock Level after dispensing: "))
-                # Update inventory
+        
+             # SAFETY CHECK: Ensure dispensing cannot increase stock level
+                current_stock = inv_mgr._inventory_cache[adc_id][med_name]["stock"]
+                if new_stock > current_stock:
+                    print(f"[ERROR] Dispensing cannot increase stock level. Current stock is {current_stock}, but you entered {new_stock}.")
+                    continue
+
+             # Update inventory
                 if inv_mgr.update_stock_level(adc_id, med_name, new_stock, operator_id=current_user.userID) == True:
                     logger.log_event("DISPENSE", adc_id, f"Dispensed {med_name} to patient {pid}", current_user.userID)
                     print(f"[SUCCESS] Medication securely logged to Patient {pid}'s history.")
-                
-                # Traceability: Link the dispense event directly to the patient profile (FR-PID-03)
-                
+            
+            # Traceability: Link the dispense event directly to the patient profile (FR-PID-03)
+
             except ValueError:
                 print("[ERROR] Stock level must be an integer.")
 
