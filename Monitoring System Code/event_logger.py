@@ -113,29 +113,3 @@ class EventLogger:
             print(f"CRITICAL STORAGE ERROR: Could not write log entry. Details: {e}")
 
 
-# =============================================================================
-# TERMINAL COPY-PASTE TEST INSTRUCTIONS (Interactive Python Shell)
-# =============================================================================
-# Open your terminal inside "Monitoring System Code", type `python3`, then copy and paste:
-#
-#   from event_logger import EventLogger
-#   logger = EventLogger("system_audit_log.txt")
-#   
-#   # 1. Read fresh log file (shows header and "No logs in audit trail.")
-#   for line in logger.read_logs():
-#       print(line.strip())
-#   
-#   # 2. Log an event (prints notification and removes the "No logs" message)
-#   logger.log_event("ALARM", "ADC-01", "Drawer 2 jammed", "NURSE-01")
-#   
-#   # 3. Read log file again (shows header + real event log)
-#   for line in logger.read_logs():
-#       print(line.strip())
-#   
-#   # 4. Clear logs (resets back to header and brings back "No logs in audit trail.")
-#   logger.clear_logs()
-#   
-#   # 5. Verify via read_logs()
-#   for line in logger.read_logs():
-#       print(line.strip())
-# =============================================================================
