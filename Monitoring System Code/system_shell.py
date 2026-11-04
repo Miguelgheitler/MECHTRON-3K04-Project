@@ -126,6 +126,29 @@ def run_terminal():
             continue
 
         # =====================================================================
+        # STATE MACHINE DEMO COMMANDS (Simulating internal hardware events)
+        # =====================================================================
+        elif cmd == "trigger_fault":
+            uid = current_user.userID if current_user else "SYSTEM"
+            state_machine.trigger_event("hardwareFault", uid)
+            print(f"State: {state_machine.current_state.value}")
+            continue
+            
+        elif cmd == "trigger_event":
+            uid = current_user.userID if current_user else "SYSTEM"
+            event_name = input("Event (testPassed, testFailed, hardwareFault, techLogin, exit): ").strip()
+            
+            # Enforce techLogin guard for IT Admins only
+            if event_name == "techLogin":
+                if current_user is None or not access_control.check_authorization(current_user, access_control.UserRole.IT_ADMIN):
+                    print("[ACCESS DENIED] Only an logged-in IT_ADMIN can perform a techLogin.")
+                    continue
+                    
+            success = state_machine.trigger_event(event_name, uid)
+            print("Success." if success else "Rejected.")
+            continue
+
+        # =====================================================================
         # GLOBAL SESSION GUARD: Block all other commands if not logged in
         # =====================================================================
         if current_user is None:
@@ -573,33 +596,6 @@ def run_terminal():
                 print(f"Alarm {alarm_key} acknowledged and cleared.")
             else:
                 print("Error: Alarm key not found in active alarms.")
-
-        # ==========================================
-        # STATE MACHINE DEMO COMMANDS
-        # ==========================================
-        elif cmd == "trigger_fault":
-            print("[SYSTEM] Simulating sudden hardware failure...")
-            state_machine.trigger_event("hardwareFault", current_user.userID)
-            print(f"Current State is now: {state_machine.current_state.value}")
-
-        elif cmd == "trigger_event":
-            print(f"Current State: {state_machine.current_state.value}")
-            event_name = input("Enter event (testPassed, testFailed, hardwareFault, techLogin, exit): ").strip()
-
-            # Enforce techLogin guard for IT Admins only
-            if event_name == "techLogin":
-                if not access_control.check_authorization(current_user, UserRole.IT_ADMIN):
-                    print("[ACCESS DENIED] Only an IT_ADMIN can perform a techLogin.")
-                    continue
-
-            success = state_machine.trigger_event(event_name, current_user.userID)
-            if success:
-                print(f"State updated successfully. New State: {state_machine.current_state.value}")
-            else:
-                print(f"[REJECTED] The event '{event_name}' is invalid in the {state_machine.current_state.value} state.")
-
-        else:
-            print("Unknown command. Type 'help' for a list of valid commands.")
 
 
 if __name__ == "__main__":
