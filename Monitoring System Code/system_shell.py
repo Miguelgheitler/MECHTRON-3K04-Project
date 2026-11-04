@@ -341,6 +341,23 @@ def run_terminal():
             active_tasks[task_id].return_for_clarification(current_user.userID, reason)
             print(f"[TASK RETURNED] Returned to sender {active_tasks[task_id].sender_id} for clarification.")
 
+        elif cmd == "resubmit_task":
+                task_id = input("Enter Task ID to resubmit: ").strip().upper()
+                if task_id not in active_tasks:
+                    print(f"[ERROR] Task '{task_id}' not found.")
+                    continue
+
+                task = active_tasks[task_id]
+                
+                # Enforce that only the original sender can resubmit a returned task
+                if task.origin != current_user.userID:
+                    print(f"[ACCESS DENIED] You are not the original sender ('{task.origin}') of this task.")
+                    continue
+
+                updated_details = input("Enter refined/updated task details: ").strip()
+                task.resubmit(updated_details)
+                print(f"[TASK RESUBMITTED] {task}")
+
         elif cmd == "complete_task":
             task_id = input("Enter Task ID to mark complete: ").strip().upper()
             if task_id not in active_tasks:

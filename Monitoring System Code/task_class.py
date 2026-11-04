@@ -83,6 +83,6 @@ class Task:
     def __repr__(self) -> str:
         notes_count = len(self.clarification_notes)
         return (
-            f"<Task {self.task_id} [{self.status.value}] ({self.task_type.value}) "
-            f"-> Owner/Assignee: {self.assignee} | Notes: {notes_count}>"
+            f"Task {self.task_id} [{self.status.value}] ({self.task_type.value}) "
+            f"-> Owner/Assignee: {self.assignee} | Notes: {notes_count}"
         )
