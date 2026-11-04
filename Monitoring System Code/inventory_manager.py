@@ -250,8 +250,6 @@ class InventoryManager:
         self._sync_to_storage()
         print(f"[INVENTORY UPDATE] Applied alarm status to {adc_id} -> {med_name}")
         
-        # REMOVED the duplicate self._event_logger.log_event() here 
-        # because CommsGateway handles logging the network telemetry event!
         return True
 
     def get_inventory_status(self) -> None:
@@ -267,33 +265,3 @@ class InventoryManager:
                 print(line.strip())
 
 
-# =============================================================================
-# TERMINAL COPY-PASTE TEST INSTRUCTIONS (Interactive Python Shell)
-# =============================================================================
-# Open your terminal inside "Monitoring System Code", type `python3`, then paste:
-#
-#   from event_logger import EventLogger
-#   from inventory_manager import InventoryManager
-#   from alarm_class import Alarm, AlarmType
-#   
-#   logger = EventLogger("system_audit_log.txt")
-#   inv_mgr = InventoryManager("system_inventory.txt", event_logger=logger)
-#   
-#   # 1. Test ADC Format Validation (Invalid vs Valid)
-#   inv_mgr.init_adc("ADC-BAD")  # Should reject
-#   inv_mgr.init_adc("ADC-03")   # Should succeed
-#   
-#   # 2. Add medication and test duplicate prevention
-#   inv_mgr.add_medication("ADC-03", "Morphine", initial_stock=10, min_par=20, max_par=100)
-#   inv_mgr.add_medication("ADC-03", "Morphine", initial_stock=50, min_par=20, max_par=100) # Should reject duplicate
-#   
-#   # 3. Simulate an incoming alarm packet sent over from ADC-03
-#   incoming_alarm = Alarm(adcID="ADC-03", alarmType=AlarmType.LOW_INVENTORY, isCritical=True, details="Stock below minimum par")
-#   inv_mgr.process_incoming_alarm(incoming_alarm, "Morphine")
-#   
-#   # 4. View inventory table (shows the active alarm status column updated)
-#   inv_mgr.get_inventory_status()
-#   
-#   # 5. Test Medication Removal Function
-#   inv_mgr.remove_medication("ADC-03", "Morphine")
-#   inv_mgr.get_inventory_status()
