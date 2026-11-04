@@ -9,6 +9,7 @@ from alarm_class import Alarm, AlarmType
 from user_class import UserRole, User, load_user
 from task_class import Task, TaskType, TaskStatus
 from state_machine import StateMachine, SystemState
+from patient_database import PatientDatabase
 import access_control
 
 
@@ -20,6 +21,10 @@ def print_help_menu():
     print("  [Authentication]")
     print("    login          - Authenticate with User ID and password")
     print("    logout         - Terminate current active session")
+    print("  [Patient Information (PID)]")
+    print("    add_patient    - Create a new patient profile (Admin/Pharmacist)")
+    print("    view_patient   - Securely view patient profile (Nurse/Pharmacist)")
+    print("    dispense_med   - Dispense medication and link to a patient (Nurse)")
     print("  [Inventory Supervision (Pharmacist / Admin)]")
     print("    init_adc       - Initialize a new ADC cabinet (Format: ADC-##)")
     print("    add_med        - Add a medication and par levels to an ADC")
@@ -59,6 +64,7 @@ def run_terminal():
     inv_mgr = InventoryManager("system_inventory.txt", event_logger=logger)
     comms = CommsGateway(logger)
     state_machine = StateMachine(logger)
+    patient_db = PatientDatabase("patient_records.txt", logger=logger)
 
     # Active session state managed by Access Control module
     current_user = None
@@ -136,6 +142,54 @@ def run_terminal():
         if cmd in operational_commands and state_machine.current_state == SystemState.FAULT:
             print(f"[BLOCKED] System is in {SystemState.FAULT.value} state. Maintenance required.")
             continue
+
+        # --- PATIENT INFO DATABASE (PID) ---
+        elif cmd == "add_patient":
+            if current_user.role not in [access_control.UserRole.PHARMACIST, access_control.UserRole.IT_ADMIN]:
+                print("[ACCESS DENIED] Only Pharmacists or Admins can add patients.")
+                continue
+            pid = input("Enter Patient ID (e.g., PT-103): ").strip()
+            name = input("Enter Patient Name: ").strip()
+            schedule = input("Enter Medication Schedule: ").strip()
+            patient_db.add_patient(pid, name, schedule, current_user.userID)
+
+        elif cmd == "view_patient":
+            pid = input("Enter Patient ID to view: ").strip()
+            # Demo showing PII Scrubbing vs Full Access
+            if current_user.role == access_control.UserRole.IT_ADMIN:
+                print("\n[IT ADMIN VIEW] Scrubbing PII for non-clinical staff...")
+                print(patient_db.get_anonymized_schedule(pid))
+            else:
+                print("\n[CLINICAL VIEW] Pulling full secure profile...")
+                profile = patient_db.get_patient_full(pid, current_user.userID)
+                if profile:
+                    print(f"Name: {profile['name']}\nSchedule: {profile['schedule']}")
+
+        elif cmd == "dispense_med":
+            if current_user.role not in [access_control.UserRole.NURSE, access_control.UserRole.PHARMACIST]:
+                print("[ACCESS DENIED] Only Nurses or Pharmacists can dispense medication.")
+                continue
+            
+            pid = input("Enter Patient ID receiving medication: ").strip()
+            # Verify patient exists first
+            if patient_db.get_anonymized_schedule(pid) == "Patient not found.":
+                print("[ERROR] Cannot dispense. Patient ID does not exist.")
+                continue
+                
+            adc_id = input("Enter ADC ID dispensing from (e.g., ADC-01): ").strip()
+            med_name = input("Enter Medication Name: ").strip()
+            
+            try:
+                new_stock = int(input("Enter New Stock Level after dispensing: "))
+                # Update inventory
+                if inv_mgr.update_stock_level(adc_id, med_name, new_stock, operator_id=current_user.userID) == True:
+                    logger.log_event("DISPENSE", adc_id, f"Dispensed {med_name} to patient {pid}", current_user.userID)
+                    print(f"[SUCCESS] Medication securely logged to Patient {pid}'s history.")
+                
+                # Traceability: Link the dispense event directly to the patient profile (FR-PID-03)
+                
+            except ValueError:
+                print("[ERROR] Stock level must be an integer.")
 
         # =====================================================================
         # INVENTORY COMMANDS (Restricted to Pharmacists or appropriate roles)
