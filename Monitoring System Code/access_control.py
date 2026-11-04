@@ -96,10 +96,10 @@ def check_authorization(current_user: Optional[User], requiredRole: UserRole) ->
     Authorizes the current user to perform an action restricted to requiredRole.
     """
     if current_user is None:
-        print("Login to perform this action")
+        # print("Login to perform this action")
         return False
     if current_user.role != requiredRole:
-        print("Account not authorized for this action")
+        # print("Account not authorized for this action")
         return False
     return True
 
