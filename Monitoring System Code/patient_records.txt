@@ -1,0 +1,7 @@
+==================================================================
+                 PATIENT INFORMATION DATABASE (PID)               
+             WARNING: CONTAINS PROTECTED HEALTH INFO              
+==================================================================
+PATIENT_ID | NAME | MEDICATION_SCHEDULE
+------------------------------------------------------------------
+PT-278 | Nick Evan | Morphine twice a day

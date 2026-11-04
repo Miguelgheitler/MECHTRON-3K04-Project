@@ -25,3 +25,39 @@ TIMESTAMP                   | LOG_TYPE   | SOURCE     | USER       | DETAILS
 [2026-11-02 23:51:28.817] [STATE_CHANGE] | Source: SYSTEM | User: I-001 | Details: Transitioned from MAINTENANCE to OPERATIONAL via 'exit'
 [2026-11-02 23:53:43.057] [COMMS_LOST] | Source: ADC-04 | User: SYSTEM | Details: ADC ADC-04 communication lost.
 [2026-11-02 23:54:15.641] [SECURITY_WARNING] | Source: I-001 | User: I-001 | Details: Unauthorized attempt by UserRole.IT_ADMIN to add medication.
+[2026-11-03 21:50:48.062] [SECURITY] | Source: AUTH | User: S-001 | Details: User Spongebob Squarepants (SUPERVISOR) successfully logged in.
+[2026-11-03 21:51:38.881] [TASK_CREATED] | Source: TSK-02 | User: S-001 | Details: Task (SPECIAL) created by S-001 -> Assignee: S-001. Details: do your homework
+[2026-11-03 21:53:22.539] [TASK_ASSIGNED] | Source: TSK-02 | User: S-001 | Details: Assigned to P-001 by Supervisor S-001.
+[2026-11-03 21:55:45.719] [TASK_RETURNED] | Source: TSK-02 | User: S-001 | Details: Returned to sender S-001 for clarification: doing homework scary
+[2026-11-03 21:56:44.724] [TASK_COMPLETED] | Source: TSK-02 | User: S-001 | Details: Task marked COMPLETED by S-001.
+[2026-11-03 21:59:17.465] [SESSION_TIMEOUT] | Source: AUTH | User: S-001 | Details: Session auto-locked after 157s of inactivity (>120s threshold).
+[2026-11-03 21:59:45.093] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler (PHARMACIST) successfully logged in.
+[2026-11-03 22:00:22.854] [PID_UPDATE] | Source: PID | User: P-001 | Details: New patient profile created: PT-278
+[2026-11-03 22:02:31.780] [SESSION_TIMEOUT] | Source: AUTH | User: P-001 | Details: Session auto-locked after 162s of inactivity (>120s threshold).
+[2026-11-03 22:03:07.994] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler (PHARMACIST) successfully logged in.
+[2026-11-03 22:03:21.202] [PID_ACCESS] | Source: PID | User: P-001 | Details: Full profile accessed for PT-278
+[2026-11-03 22:04:03.812] [INVENTORY] | Source: ADC-02 | User: P-001 | Details: Updated stock for Morphine from 25 to 19.
+[2026-11-03 22:04:03.812] [DISPENSE] | Source: ADC-02 | User: P-001 | Details: Dispensed Morphine to patient PT-278
+[2026-11-03 22:05:59.854] [SESSION_TIMEOUT] | Source: AUTH | User: P-001 | Details: Session auto-locked after 146s of inactivity (>120s threshold).
+[2026-11-03 22:06:09.662] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler (PHARMACIST) successfully logged in.
+[2026-11-03 22:06:41.010] [ALARM] | Source: ADC-02 | User: SYSTEM | Details: Critical message received: LOW_INVENTORY (Morphine): morphine stock below par levels
+[2026-11-03 22:24:23.804] [SESSION_TIMEOUT] | Source: AUTH | User: P-001 | Details: Session auto-locked after 1062s of inactivity (>120s threshold).
+[2026-11-03 22:24:38.934] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler (PHARMACIST) successfully logged in.
+[2026-11-03 22:24:53.205] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler logged out.
+[2026-11-03 22:25:00.714] [SECURITY_REVIEW] | Source: AUTH | User: S-001 | Details: FOR_REVIEW: Failed login for User 'S-001' - Reason: Incorrect password.
+[2026-11-03 22:25:10.363] [SECURITY] | Source: AUTH | User: S-001 | Details: User Spongebob Squarepants (SUPERVISOR) successfully logged in.
+[2026-11-03 22:27:22.620] [SESSION_TIMEOUT] | Source: AUTH | User: S-001 | Details: Session auto-locked after 129s of inactivity (>120s threshold).
+[2026-11-03 22:27:53.226] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler (PHARMACIST) successfully logged in.
+[2026-11-03 22:28:08.519] [INVENTORY] | Source: ADC-07 | User: SYSTEM | Details: Initialized new ADC cabinet.
+[2026-11-03 22:29:35.585] [INVENTORY] | Source: ADC-08 | User: SYSTEM | Details: Initialized new ADC cabinet.
+[2026-11-03 22:29:48.010] [INVENTORY] | Source: ADC-08 | User: P-001 | Details: Added medication Insulin with stock 25.
+[2026-11-03 22:30:21.051] [ALARM] | Source: ADC-08 | User: SYSTEM | Details: Critical message received: LOW_INVENTORY (Insulin): low insulin level
+[2026-11-03 22:31:02.506] [ALARM_ACK] | Source: ADC-08 | User: P-001 | Details: Alarm LOW_INVENTORY acknowledged by P-001.
+[2026-11-03 22:31:33.764] [ALARM] | Source: ADC-03 | User: SYSTEM | Details: Critical message received: CONNECTION_LOST: connection lost
+[2026-11-03 22:32:35.205] [ALARM_ACK] | Source: ADC-03 | User: P-001 | Details: Alarm CONNECTION_LOST acknowledged by P-001.
+[2026-11-03 22:33:08.413] [ALARM_ACK] | Source: ADC-02 | User: P-001 | Details: Alarm LOW_INVENTORY acknowledged by P-001.
+[2026-11-03 22:34:35.679] [TASK_CREATED] | Source: TSK-01 | User: P-001 | Details: Task (ROUTINE) created by P-001 -> Assignee: P-001. Details: do your homework
+[2026-11-03 22:35:00.392] [SECURITY] | Source: AUTH | User: P-001 | Details: User Miguel Gonzalez Heitler logged out.
+[2026-11-03 22:35:06.994] [SECURITY] | Source: AUTH | User: S-001 | Details: User Spongebob Squarepants (SUPERVISOR) successfully logged in.
+[2026-11-03 22:36:18.538] [TASK_RETURNED] | Source: TSK-01 | User: S-001 | Details: Returned to sender P-001 for clarification: homework not good
+[2026-11-03 22:36:42.658] [SECURITY] | Source: AUTH | User: S-001 | Details: User Spongebob Squarepants logged out.
