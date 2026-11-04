@@ -23,3 +23,5 @@ TIMESTAMP                   | LOG_TYPE   | SOURCE     | USER       | DETAILS
 [2026-11-02 23:46:15.322] [INVALID_ACTION] | Source: SYSTEM | User: I-001 | Details: Ignored invalid event 'exit' while in state FAULT
 [2026-11-02 23:51:19.137] [STATE_CHANGE] | Source: SYSTEM | User: I-001 | Details: Transitioned from FAULT to MAINTENANCE via 'techLogin'
 [2026-11-02 23:51:28.817] [STATE_CHANGE] | Source: SYSTEM | User: I-001 | Details: Transitioned from MAINTENANCE to OPERATIONAL via 'exit'
+[2026-11-02 23:53:43.057] [COMMS_LOST] | Source: ADC-04 | User: SYSTEM | Details: ADC ADC-04 communication lost.
+[2026-11-02 23:54:15.641] [SECURITY_WARNING] | Source: I-001 | User: I-001 | Details: Unauthorized attempt by UserRole.IT_ADMIN to add medication.
