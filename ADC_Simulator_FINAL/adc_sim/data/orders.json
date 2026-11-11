@@ -1,0 +1,20 @@
+{
+ "ORD-1001": {
+  "order_id": "ORD-1001",
+  "medication_id": "AMOX-500",
+  "quantity": 2,
+  "remaining": 1
+ },
+ "ORD-1002": {
+  "order_id": "ORD-1002",
+  "medication_id": "MORPH-10",
+  "quantity": 1,
+  "remaining": 1
+ },
+ "ORD-1003": {
+  "order_id": "ORD-1003",
+  "medication_id": "INSUL-100",
+  "quantity": 3,
+  "remaining": 3
+ }
+}

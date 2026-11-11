@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADC Simulator</title>
+<style>
+:root{--bg:#f3f4f7;--card:#fff;--ink:#1d2230;--mute:#667085;--line:#d9dde5;--blue:#2f6fd0;--green:#1f8a4c;--red:#c62828;--amber:#b7791f;--purple:#6b4fbb}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:10px 18px;background:#1d2230;color:#fff}
+header h1{font-size:17px;margin:0 12px 0 0}
+.pill{padding:3px 10px;border-radius:99px;font-weight:600;font-size:12px;background:#394056}
+.pill.NORMAL{background:var(--green)}.pill.MAINTENANCE{background:var(--amber)}.pill.FAULT{background:var(--red)}
+.pill.up{background:var(--green)}.pill.down{background:var(--red)}
+#alarm{display:none;background:var(--red);color:#fff;font-weight:700;text-align:center;padding:8px;animation:flash 1s steps(2) infinite}
+@keyframes flash{50%{background:#7f1d1d}}
+main{display:grid;grid-template-columns:1.1fr 1.25fr 1fr;gap:14px;padding:14px}
+@media(max-width:1100px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.card h2{margin:0 0 10px;font-size:15px;display:flex;justify-content:space-between;align-items:center}
+.card h2 small{font-weight:400;color:var(--mute);font-size:12px}
+.screen{border-top:4px solid var(--blue)}.hwcard{border-top:4px solid var(--purple)}.mscard{border-top:4px solid var(--green)}
+label{display:block;font-size:12px;color:var(--mute);margin:6px 0 2px}
+input,select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;width:100%}
+button{font:inherit;padding:6px 10px;border:0;border-radius:6px;background:var(--blue);color:#fff;cursor:pointer;font-weight:600}
+button:hover{filter:brightness(1.1)}button.gray{background:#596173}button.red{background:var(--red)}button.green{background:var(--green)}button.amber{background:var(--amber)}button.sm{padding:3px 7px;font-size:12px}
+.row{display:flex;gap:8px;align-items:end}.row>*{flex:1}
+#msg{margin:10px 0;padding:9px 11px;border-radius:7px;background:#eef3fb;border-left:4px solid var(--blue);min-height:38px}
+#msg.bad{background:#fdecec;border-color:var(--red)}#msg.good{background:#eaf6ef;border-color:var(--green)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}th{color:var(--mute);font-weight:600;font-size:12px}
+.tag{display:inline-block;padding:1px 7px;border-radius:5px;font-size:12px;font-weight:600}
+.locked{background:#eaf6ef;color:var(--green)}.unlocked{background:#fff4e0;color:var(--amber)}.fault{background:#fdecec;color:var(--red)}.unknown{background:#eee;color:#666}
+.hint{font-size:12px;color:var(--mute)}
+.btns{display:flex;flex-wrap:wrap;gap:4px}
+.section{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)}
+#log{max-height:330px;overflow:auto;font:12px/1.45 ui-monospace,Consolas,monospace}
+#log div{padding:2px 0;border-bottom:1px solid #f0f1f4}
+.k{font-weight:700}.k.FAULT,.k.AUTH_FAILED,.k.ACCOUNT_LOCKED,.k.LINK_LOST,.k.NETWORK_COMMAND_REJECTED,.k.ACCESS_DENIED{color:var(--red)}.k.MODE_CHANGE{color:var(--amber)}.k.DISPENSE,.k.REPLENISH{color:var(--blue)}
+.wide{grid-column:1/-1}
+.hidden{display:none}
+</style></head><body>
+<header><h1>Automated Dispensing Cabinet</h1>
+<span>Mode <span id="mode" class="pill">-</span></span>
+<span>Link to Monitoring System <span id="link" class="pill">-</span></span>
+<span>Queued msgs <b id="queued">0</b></span>
+<span>Time <b id="clock">-</b></span>
+<span>Drawer txn <b id="dstate">-</b></span></header>
+<div id="alarm">⚠ FAULT ALARM: technician required</div>
+<main>
+<section class="card screen"><h2>1 · Cabinet screen <small>what staff use</small></h2>
+ <div id="who" class="hint">Not logged in</div>
+ <div id="msg">-</div>
+ <div id="loginBox">
+  <div class="row"><div><label>Badge ID</label><input id="badge" placeholder="e.g. N1001"></div><div><label>PIN</label><input id="pin" type="password" placeholder="••••"></div></div>
+  <div style="margin-top:8px"><button onclick="post('login',{badge:val('badge'),pin:val('pin')}).then(j=>{el('pin').value='';if(j.ok)el('badge').value=''})">Log in</button></div>
+  <p class="hint">Demo users: Nurse N1001 / 1234 · Pharmacy Tech P2001 / 2222 · Technician T3001 / 3333</p>
+ </div>
+ <div id="nurseBox" class="hidden">
+  <label>Authorized order</label><select id="order"></select>
+  <div class="row" style="margin-top:6px"><div><label>Quantity</label><input id="dqty" type="number" value="1" min="1"></div><div><button onclick="post('dispense',{order_id:val('order'),qty:val('dqty')})">Request medication</button></div></div>
+  <p class="hint">Orders are only shown after login (NFR-SEC-02).</p>
+ </div>
+ <div id="pharmBox" class="hidden">
+  <div class="row"><div><label>Location</label><select id="rloc"></select></div><div><label>Quantity added</label><input id="rqty" type="number" value="5"></div></div>
+  <div style="margin-top:8px"><button onclick="post('replenish',{location:val('rloc'),qty:val('rqty')})">Unlock to restock</button></div>
+ </div>
+ <div id="techBox" class="hidden">
+  <div class="btns"><button class="amber" onclick="post('maint_enter')">Enter maintenance</button><button class="gray" onclick="post('maint_exit')">Exit maintenance</button><button class="red" onclick="post('shutdown')">Shut down (maintenance only)</button></div>
+  <div class="section"><b>Active faults</b><table><thead><tr><th>#</th><th>Type</th><th>Where</th><th>Raised</th><th></th></tr></thead><tbody id="faults"></tbody></table></div>
+ </div>
+ <div id="logoutBox" class="hidden" style="margin-top:10px"><button class="gray" onclick="post('logout')">Log out</button></div>
+</section>
+
+<section class="card hwcard"><h2>2 · Cabinet hardware <small>simulated physical world</small></h2>
+ <table><thead><tr><th>Drawer</th><th>Medication</th><th>Qty</th><th>Lock</th><th>Drawer</th><th>Physical actions</th></tr></thead><tbody id="hw"></tbody></table>
+ <div class="section"><b>Whole cabinet</b>
+  <div class="btns" style="margin-top:6px"><button class="red sm" onclick="post('hang')">Freeze software 1.5 s</button><button class="gray sm" onclick="post('power')">Power cycle</button><button class="gray sm" onclick="post('skip',{seconds:10})">Skip +10 s</button><button class="gray sm" onclick="post('skip',{seconds:30})">Skip +30 s</button><button class="gray sm" onclick="if(confirm('Reset all demo data?'))post('reset')">Reset demo</button></div>
+  <p class="hint">Open/Close = a person moving the drawer. Jam / Kill sensor / Freeze inject faults. Repair fixes the hardware so the technician's self-check can pass. Skip moves time forward (e.g. to show the 30 s drawer timeout).</p>
+ </div>
+</section>
+
+<section class="card mscard"><h2>3 · Monitoring System <small>stand-in for Part B</small></h2>
+ <div class="btns"><button class="green" onclick="post('ms_online',{online:true})">Go online</button><button class="red" onclick="post('ms_online',{online:false})">Go offline (cut link)</button></div>
+ <p class="hint">Status: <b id="msOnline">-</b> · messages received: <b id="msCount">0</b></p>
+ <div class="section"><b>Send authorized order</b>
+  <div class="row"><div><label>Order ID</label><input id="oid" value="ORD-2001"></div><div><label>Medication</label><select id="omed"></select></div><div style="flex:.5"><label>Qty</label><input id="oqty" type="number" value="1"></div></div>
+  <div class="btns" style="margin-top:6px"><button onclick="post('ms_order',{order_id:val('oid'),medication_id:val('omed'),qty:val('oqty')})">Send order</button><button class="red" onclick="post('ms_forged',{order_id:val('oid')+'-X',medication_id:val('omed'),qty:val('oqty')})">Send forged order (bad signature)</button><button class="gray" onclick="post('ms_dup')">Re-send last order (duplicate)</button></div>
+ </div>
+ <div class="section"><b>Latest status</b> <span id="msStatus" class="hint">-</span><br><b>Alarms</b><div id="msAlarms" class="hint">none</div></div>
+ <div class="section"><b>Received messages</b><div id="msRecent" style="max-height:200px;overflow:auto;font:12px ui-monospace,Consolas,monospace"></div></div>
+</section>
+
+<section class="card wide"><h2>Event log <small>append-only, kept on disk across restarts (FR-LOG, NFR-AUD-04)</small></h2><div id="log"></div></section>
+</main>
+<script>
+const el=id=>document.getElementById(id), val=id=>el(id).value;
+let lastOrders='', lastLocs='', audio=null, beepT=0;
+async function post(a,body={}){const r=await fetch('/api/'+a,{method:'POST',body:JSON.stringify(body)});const j=await r.json();showMsg(j.message,j.ok);const m=el('msg');m.dataset.lock='1';clearTimeout(m._t);m._t=setTimeout(()=>{delete m.dataset.lock},2500);refresh();return j}
+function showMsg(m,ok){const b=el('msg');b.textContent=m;b.className=ok===undefined?'':(ok?'good':'bad')}
+function lockTag(l){return l===null?'<span class="tag unknown">no reply</span>':l?'<span class="tag locked">🔒 locked</span>':'<span class="tag unlocked">🔓 unlocked</span>'}
+function drawerTag(d){return d===null?'<span class="tag unknown">no reply</span>':d==='open'?'<span class="tag unlocked">open</span>':'<span class="tag locked">closed</span>'}
+function beep(){try{audio=audio||new AudioContext();const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=880;g.gain.value=.08;o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.25)}catch(e){}}
+function opts(sel,items){const cur=sel.value;sel.innerHTML=items.map(([v,t])=>`<option value="${v}">${t}</option>`).join('');if([...sel.options].some(o=>o.value===cur))sel.value=cur}
+async function refresh(){
+ const s=await (await fetch('/api/state')).json(), a=s.adc;
+ el('mode').textContent=a.halted?'SHUT DOWN':a.mode; el('mode').className='pill '+a.mode;
+ el('link').textContent=a.link_up?'UP':'LOST'; el('link').className='pill '+(a.link_up?'up':'down');
+ el('queued').textContent=a.queued; el('clock').textContent=a.clock; el('dstate').textContent=a.dispense_state;
+ el('alarm').style.display=a.alarm?'block':'none';
+ if(a.alarm&&Date.now()-beepT>1500){beep();beepT=Date.now()}
+ if(!el('msg').dataset.lock) { const m=el('msg'); if(m.textContent!==a.message){m.textContent=a.message; m.className=a.message.startsWith('FAULT')?'bad':''} }
+ const ses=a.session; el('who').innerHTML=ses?`Logged in: <b>${ses.name}</b> (${ses.user_id}, ${ses.role})`:'Not logged in';
+ el('loginBox').classList.toggle('hidden',!!ses); el('logoutBox').classList.toggle('hidden',!ses);
+ el('nurseBox').classList.toggle('hidden',!(ses&&ses.role==='Nurse'));
+ el('pharmBox').classList.toggle('hidden',!(ses&&ses.role==='PharmacyTechnician'));
+ el('techBox').classList.toggle('hidden',!(ses&&ses.role==='Technician'));
+ const ok=JSON.stringify(a.orders); if(ok!==lastOrders){lastOrders=ok;opts(el('order'),a.orders.map(o=>[o.order_id,`${o.order_id} · ${o.name} · ${o.remaining} left`]))}
+ const lk=Object.keys(a.locations).join(); if(lk!==lastLocs){lastLocs=lk;opts(el('rloc'),Object.entries(a.locations).map(([k,v])=>[k,`${k} · ${v.name}`]));opts(el('omed'),Object.entries(a.locations).map(([k,v])=>[v.medication_id,v.name]))}
+ el('faults').innerHTML=a.faults.length?a.faults.map(f=>`<tr><td>${f.fault_id}</td><td>${f.fault_type}</td><td>${f.location||'cabinet'}</td><td>${f.raised}</td><td><button class="sm green" onclick="post('clear_fault',{fault_id:${f.fault_id}})">Clear</button></td></tr>`).join(''):'<tr><td colspan=5 class="hint">No active faults</td></tr>';
+ el('hw').innerHTML=Object.entries(a.locations).map(([k,v])=>{const h=s.hw[k];const flags=(h.jammed?' <span class="tag fault">jammed</span>':'')+(h.sensor_dead?' <span class="tag fault">sensor dead</span>':'');
+  return `<tr><td><b>${k}</b>${v.faulted?' <span class="tag fault">FAULT</span>':''}</td><td>${v.name}</td><td>${v.quantity}</td><td>${lockTag(h.locked)}${flags}</td><td>${h.drawer==='open'?'<span class="tag unlocked">open</span>':'<span class="tag locked">closed</span>'}</td>
+  <td class="btns"><button class="sm" onclick="post('hw_open',{location:'${k}'})">Open</button><button class="sm" onclick="post('hw_close',{location:'${k}'})">Close</button><button class="sm red" onclick="post('hw_jam',{location:'${k}'})">Jam lock</button><button class="sm red" onclick="post('hw_sensor',{location:'${k}'})">Kill sensor</button><button class="sm green" onclick="post('hw_repair',{location:'${k}'})">Repair</button></td></tr>`}).join('');
+ const ms=s.ms; el('msOnline').textContent=ms.online?'ONLINE':'OFFLINE'; el('msCount').textContent=ms.count;
+ el('msStatus').textContent=ms.status?`mode ${ms.status.mode}, ${ms.status.faults.length} active fault(s)`:'-';
+ el('msAlarms').innerHTML=ms.alarms.length?ms.alarms.map(x=>`<span class="tag fault">${x.fault_type} at ${x.location||'cabinet'}</span>`).join(' '):'none';
+ el('msRecent').innerHTML=ms.recent.map(m=>`<div>#${m.seq} <b>${m.kind}</b> ${m.summary}</div>`).join('');
+ el('log').innerHTML=a.log.map(r=>{const extra=Object.entries(r).filter(([k])=>!['id','time','clock','kind'].includes(k)&&r[k]!==null&&r[k]!=='').map(([k,v])=>`${k}=${typeof v==='object'?JSON.stringify(v):v}`).join(' ');return `<div>#${r.id} ${r.clock} <span class="k ${r.kind}">${r.kind}</span> ${extra}</div>`}).join('');
+}
+setInterval(refresh,300); refresh();
+</script></body></html>

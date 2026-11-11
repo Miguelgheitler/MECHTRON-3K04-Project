@@ -1,0 +1,15 @@
+{"id": 1, "time": 1794427083.1100132, "clock": "14:58:03", "kind": "STARTUP", "note": "all locations commanded locked"}
+{"id": 2, "time": 1794427083.2102396, "clock": "14:58:03", "kind": "ORDER_RECEIVED", "order_id": "ORD-1001", "medication_id": "AMOX-500", "quantity": 2}
+{"id": 3, "time": 1794427083.2102396, "clock": "14:58:03", "kind": "ORDER_RECEIVED", "order_id": "ORD-1002", "medication_id": "MORPH-10", "quantity": 1}
+{"id": 4, "time": 1794427083.2102396, "clock": "14:58:03", "kind": "ORDER_RECEIVED", "order_id": "ORD-1003", "medication_id": "INSUL-100", "quantity": 3}
+{"id": 5, "time": 1794427166.2520657, "clock": "14:59:26", "kind": "LOGIN", "user_id": "N1001", "role": "Nurse"}
+{"id": 6, "time": 1794427286.3325548, "clock": "15:01:26", "kind": "LOGOUT", "user_id": "N1001", "reason": "session timeout"}
+{"id": 7, "time": 1794427373.5852685, "clock": "15:02:53", "kind": "LOGIN", "user_id": "N1001", "role": "Nurse"}
+{"id": 8, "time": 1794427398.9940765, "clock": "15:03:18", "kind": "DISPENSE", "result": "Completed", "user_id": "N1001", "order_id": "ORD-1001", "medication_id": "AMOX-500", "location": "A1", "quantity": 1}
+{"id": 9, "time": 1794427398.9940765, "clock": "15:03:18", "kind": "LOGOUT", "user_id": "N1001", "reason": "transaction complete"}
+{"id": 10, "time": 1794427449.7963517, "clock": "15:04:09", "kind": "LOGIN", "user_id": "N1001", "role": "Nurse"}
+{"id": 11, "time": 1794427471.8911195, "clock": "15:04:31", "kind": "DISPENSE", "result": "Rejected", "reason": "Quantity exceeds authorized order (1 remaining)", "user_id": "N1001", "order_id": "ORD-1001", "medication_id": null, "location": null, "quantity": 3}
+{"id": 12, "time": 1794427616.8815126, "clock": "15:06:56", "kind": "FAULT", "fault_id": 1, "fault_type": "DRAWER_OPEN", "location": "A1", "time_raised": "15:06:56"}
+{"id": 13, "time": 1794427616.8815126, "clock": "15:06:56", "kind": "MODE_CHANGE", "from_mode": "NORMAL", "to_mode": "FAULT", "reason": "fault detected"}
+{"id": 14, "time": 1794427616.8815126, "clock": "15:06:56", "kind": "DISPENSE", "result": "Faulted", "reason": "DRAWER_OPEN", "user_id": "N1001", "order_id": "ORD-1001", "medication_id": "AMOX-500", "location": "A1", "quantity": 1}
+{"id": 15, "time": 1794427706.9470947, "clock": "15:08:26", "kind": "LOGOUT", "user_id": "N1001", "reason": "session timeout"}
